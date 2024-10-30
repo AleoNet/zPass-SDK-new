@@ -2,7 +2,7 @@ import * as aleo from '@provablehq/sdk';
 import * as wasm from '../wasm/pkg/issuer';
 
 export { HashAlgorithm } from '../wasm/pkg/issuer';
-export { TransactionModel } from '@provablehq/sdk';
+export type { TransactionModel } from '@provablehq/sdk';
 
 export default class ZPassSDK {
     private programManager: aleo.ProgramManager;
@@ -19,18 +19,33 @@ export default class ZPassSDK {
         privateKey: string,
         host?: string,
     ) {
-        const account = new aleo.Account({privateKey});
-        if (!host) {
-            this.programManager = new aleo.ProgramManager();
-        } else {
-            this.programManager = new aleo.ProgramManager(host);
+        // Check if WebAssembly is supported
+        if (typeof WebAssembly === 'undefined') {
+            throw new Error('WebAssembly is not supported in this environment. ZPassSDK requires WebAssembly support.');
         }
-        this.keyProvider = new aleo.AleoKeyProvider();
-        this.recordProvider = new aleo.NetworkRecordProvider(account, this.programManager.networkClient);
-        this.programManager.setAccount(account);
-        this.programManager.setKeyProvider(this.keyProvider);
-        this.programManager.setRecordProvider(this.recordProvider);
-        this.lastProgram = null;
+
+        // Validate private key format
+        if (!privateKey.startsWith('APrivateKey1')) {
+            throw new Error('Invalid private key format. Private key must start with "APrivateKey1"');
+        }
+
+        try {
+            const account = new aleo.Account({privateKey});
+            if (!host) {
+                this.programManager = new aleo.ProgramManager();
+            } else {
+                this.programManager = new aleo.ProgramManager(host);
+            }
+            this.keyProvider = new aleo.AleoKeyProvider();
+            this.recordProvider = new aleo.NetworkRecordProvider(account, this.programManager.networkClient);
+            this.programManager.setAccount(account);
+            this.programManager.setKeyProvider(this.keyProvider);
+            this.programManager.setRecordProvider(this.recordProvider);
+            this.lastProgram = null;
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'unknown error';
+            throw new Error(`Invalid private key: ${message}`);
+        }
     }
 
     /**

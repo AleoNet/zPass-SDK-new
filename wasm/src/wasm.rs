@@ -107,3 +107,15 @@ pub fn get_field_from_value(str: Option<String>) -> Result<String, String> {
     let field = string_to_field(str).map_err(|e| e.to_string())?;
     Ok(field.to_string())
 }
+
+/// Exposes a Rust function to verify a signed credential.
+#[wasm_bindgen]
+pub fn verify_signed_credential(signature: &str, address: &str, message: &str) -> Result<bool, String> {
+    let (_, signature_bytes) = Signature::<CurrentNetwork>::parse(signature).unwrap();
+    let (_, address_bytes) = Address::<CurrentNetwork>::parse(address).unwrap();
+    let message_bytes = string_to_value_fields(message);
+    match verify_signature_with_address_and_message(&signature_bytes, &address_bytes, message_bytes.as_slice()) {
+        true => Ok(true),
+        false => Err("Signature verification failed".to_string())
+    }
+}

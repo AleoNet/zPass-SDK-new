@@ -1,15 +1,12 @@
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
     test: {
-        include: ['./tests/**/*.test.ts'],  // Updated to catch all test files in tests directory
+        globals: true,
         environment: 'node',
-        exclude: [
-        '**/node_modules/**',
-        '**/dist/**',
-        '**/cypress/**',
-        '**/.{idea,git,cache,output,temp}/**'
-        ],
-        testTimeout: 10000
-    }
-})
+        setupFiles: ['./tests/setup.ts'], // If you need a setup file
+        coverage: {
+            reporter: ['text', 'json', 'html'],
+        },
+    },
+}); 

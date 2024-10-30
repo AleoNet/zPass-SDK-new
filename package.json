@@ -37,7 +37,8 @@
     "eslint": "^8.57.1",
     "tsup": "^8.3.5",
     "typescript": "^5.0.0",
-    "vitest": "^1.6.0",
+    "vite-plugin-wasm": "^3.3.0",
+    "vitest": "^1.2.0",
     "wasm-pack": "^0.12.0"
   },
   "repository": {
@@ -61,6 +62,7 @@
   },
   "homepage": "https://github.com/AleoNet/zPass-SDK-new#readme",
   "dependencies": {
-    "@provablehq/sdk": "^0.7.0"
+    "@provablehq/sdk": "^0.7.0",
+    "core-js": "^3.38.1"
   }
 }

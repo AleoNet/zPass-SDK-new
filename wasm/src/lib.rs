@@ -15,7 +15,7 @@ use std::str::FromStr;
 
 // External crate imports
 use snarkvm_console::{
-    account::{PrivateKey, Signature}, network::{environment::ToFields, MainnetV0 as CurrentNetwork, Network}, prelude::Zero, program::{Identifier, Literal, Plaintext, PlaintextType, Value}, types::{Address, Field, Scalar, U32, U64, Boolean}
+    prelude::Parser, account::{PrivateKey, Signature}, network::{environment::ToFields, MainnetV0 as CurrentNetwork, Network}, prelude::Zero, program::{Identifier, Literal, Plaintext, PlaintextType, Value}, types::{Address, Field, Scalar, U32, U64, Boolean}
 };
 use snarkvm_utilities::{TestRng, ToBits, Uniform};
 
