@@ -9,6 +9,7 @@ export default class ZPassSDK {
     private keyProvider: aleo.AleoKeyProvider;
     private recordProvider: aleo.NetworkRecordProvider;
     private lastProgram: string | null;
+    private host: string;
 
     /**
      * Initialize the SDK
@@ -33,8 +34,10 @@ export default class ZPassSDK {
             const account = new aleo.Account({privateKey});
             if (!host) {
                 this.programManager = new aleo.ProgramManager();
+                this.host = "https://api.explorer.provable.com/v1";
             } else {
                 this.programManager = new aleo.ProgramManager(host);
+                this.host = host;
             }
             this.keyProvider = new aleo.AleoKeyProvider();
             this.recordProvider = new aleo.NetworkRecordProvider(account, this.programManager.networkClient);
@@ -85,7 +88,6 @@ export default class ZPassSDK {
     public async proveOnChain(
         programName: string, 
         functionName: string,
-        fee: number,
         privateFee: boolean,
         inputs: string[],
         feeRecord?: string,
@@ -107,6 +109,19 @@ export default class ZPassSDK {
         const keyParams = new aleo.AleoKeyProviderParams({
             cacheKey: cacheKey,
         });
+
+        const fee = Number(await aleo.ProgramManagerBase.estimateExecutionFee(
+            this.programManager.account?.privateKey(),
+            program,
+            functionName,
+            inputs,
+            this.host,
+            undefined,
+            this.keyProvider.getKeys(cacheKey)[0],
+            this.keyProvider.getKeys(cacheKey)[1],
+            undefined,
+        ));
+        console.log("Fee: ", fee);
 
         const transaction = await this.programManager.buildExecutionTransaction({
             programName,

@@ -1,12 +1,13 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import ZPassSDK, { HashAlgorithm } from '../src/index';
-import { Account, Signature } from '@provablehq/sdk';
-import { verify_signed_credential } from '../wasm/pkg/issuer';
+import { verify_signed_credential, get_field_from_value } from '../wasm/pkg/issuer';
+import { Account } from '@provablehq/sdk';
 
 // Test configuration
 const TEST_PRIVATE_KEY = "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH";
 const TEST_ADDRESS = "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px";
-const TEST_HOST = "https://api.explorer.provable.com/v1";
+// const TEST_HOST = "https://api.explorer.provable.com/v1";
+const TEST_HOST = "http://localhost:3030";
 
 describe('ZPassSDK', () => {
     let sdk: ZPassSDK;
@@ -33,7 +34,6 @@ describe('ZPassSDK', () => {
         });
 
         it('should successfully verify a signed credential', async () => {
-            const account = new Account({privateKey: TEST_PRIVATE_KEY});
             const subject = TEST_ADDRESS;
             const data = { key: "value" };
             
@@ -54,16 +54,32 @@ describe('ZPassSDK', () => {
 
     describe('proveOnChain', () => {
         it('should successfully create and submit a proof transaction', async () => {
-            const result = await sdk.proveOnChain(
-                "test_program",
-                "test_function",
-                50000,
-                true,
-                ["input1", "input2"]
+            const subject = TEST_ADDRESS;
+            const data = {
+                dob: 1990,
+                nationality: "US",
+                expiry: 2030
+            };
+            const nationalityField = get_field_from_value(data.nationality);
+            
+            const signResult = await sdk.signCredential(
+                subject,
+                data,
+                HashAlgorithm.POSEIDON2
             );
 
+            const issuer = new Account({privateKey: TEST_PRIVATE_KEY}).address().to_string();
+
+            const result = await sdk.proveOnChain(
+                "verify_poseidon2.aleo",
+                "verify",
+                false,
+                [signResult.signature, `{issuer: ${issuer}, subject: ${subject}, dob: ${data.dob}u32, nationality: ${nationalityField}, expiry: ${data.expiry}u32}`]
+            );
+            
+            console.log("Transaction:", result);
             expect(typeof result).toBe('string');
-        });
+        }, 500000);
     });
 
     describe('verifyOnChain', () => {
