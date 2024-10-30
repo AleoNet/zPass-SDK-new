@@ -1,5 +1,6 @@
-node_modules
-dist
+node_modules/
+tests/node_modules/
+dist/
 
 # Environment variables
 .env

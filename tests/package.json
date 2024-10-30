@@ -1,15 +1,19 @@
 {
-  "name": "tests",
-  "version": "1.0.0",
-  "main": "index.js",
+  "name": "zpass-sdk-tests",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.6.0"
+  },
   "dependencies": {
-    "zpass-sdk": "file:../zpass-sdk-0.0.1.tgz"
+    "zpass-sdk": "file:../"
+  },
+  "vitest": {
+    "include": ["**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"]
   }
 }

@@ -33,3 +33,7 @@ tsup.config.*
 
 # Source files (since we're publishing dist)
 src/
+
+# Node modules
+tests/node_modules/
+node_modules/
