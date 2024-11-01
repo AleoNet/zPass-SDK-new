@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import ZPassSDK, { HashAlgorithm } from '../src/index';
+import { ZPassSDK, HashAlgorithm } from '../src/index';
 import { verify_signed_credential, get_field_from_value } from '../wasm/pkg/issuer';
 import { Account } from '@provablehq/sdk';
 
