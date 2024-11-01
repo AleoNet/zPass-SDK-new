@@ -11,7 +11,7 @@ program verify_poseidon2.aleo {
     transition verify(
         sig: signature,
         msg: Credentials,
-    ) -> bool {
+    ) -> public bool {
         let res: bool = signature::verify(sig, msg.issuer, Poseidon2::hash_to_field(msg));
         assert_eq(res, true);
         return res;

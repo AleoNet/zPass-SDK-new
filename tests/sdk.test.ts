@@ -96,20 +96,6 @@ describe('ZPassSDK', () => {
         }, 500000);
     });
 
-    describe('verifyOnChain', () => {
-        it('should successfully verify a transaction', async () => {
-            const txId = ctx.transactionId!;
-
-            const { hasExecution, value } = await ZPassSDK.verifyOnChain({
-                transactionId: txId,
-                url: TEST_HOST
-            });
-
-            expect(hasExecution).toBe(true);
-            console.log("Returned value: ", value);
-        });
-    });
-
     describe('proveOffChain', () => {
         it('should successfully generate an off-chain proof', async () => {
             const subject = TEST_ADDRESS;
@@ -187,5 +173,19 @@ describe('ZPassSDK', () => {
 
             expect(verificationResult).toBe(true);
         }, 500000);
+    });
+
+    describe('verifyOnChain', () => {
+        it('should successfully verify a transaction', async () => {
+            const txId = ctx.transactionId!;
+
+            const { hasExecution, value } = await ZPassSDK.verifyOnChain({
+                transactionId: txId,
+                url: TEST_HOST
+            });
+
+            expect(hasExecution).toBe(true);
+            console.log("Returned value: ", value);
+        });
     });
 }); 
