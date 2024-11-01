@@ -13,7 +13,10 @@ describe('ZPassSDK', () => {
     let sdk: ZPassSDK;
 
     beforeEach(() => {
-        sdk = new ZPassSDK(TEST_PRIVATE_KEY, TEST_HOST);
+        sdk = new ZPassSDK({
+            privateKey: TEST_PRIVATE_KEY,
+            host: TEST_HOST
+        });
     });
 
     describe('signCredential', () => {
@@ -22,9 +25,11 @@ describe('ZPassSDK', () => {
             const data = { key: "value" };
             
             const result = await sdk.signCredential(
-                subject,
-                data,
-                HashAlgorithm.POSEIDON2
+                {
+                    subject,
+                    data,
+                    hashType: HashAlgorithm.POSEIDON2
+                }
             );
 
             expect(result).toHaveProperty('signature');
@@ -38,9 +43,11 @@ describe('ZPassSDK', () => {
             const data = { key: "value" };
             
             const result = await sdk.signCredential(
-                subject,
-                data,
-                HashAlgorithm.POSEIDON2
+                {
+                    subject,
+                    data,
+                    hashType: HashAlgorithm.POSEIDON2
+                }
             );
 
             const verified = await verify_signed_credential(result.signature, subject, result.hash);
@@ -48,7 +55,7 @@ describe('ZPassSDK', () => {
         });
 
         it('should throw error if private key is not available', () => {
-            expect(() => new ZPassSDK('invalid_private_key')).toThrow('Invalid private key format. Private key must start with "APrivateKey1"');
+            expect(() => new ZPassSDK({privateKey: 'invalid_private_key'})).toThrow('Invalid private key format. Private key must start with "APrivateKey1"');
         });
     });
 
@@ -63,19 +70,21 @@ describe('ZPassSDK', () => {
             const nationalityField = get_field_from_value(data.nationality);
             
             const signResult = await sdk.signCredential(
-                subject,
-                data,
-                HashAlgorithm.POSEIDON2
+                {
+                    subject,
+                    data,
+                    hashType: HashAlgorithm.POSEIDON2
+                }
             );
 
             const issuer = new Account({privateKey: TEST_PRIVATE_KEY}).address().to_string();
 
-            const result = await sdk.proveOnChain(
-                "verify_poseidon2.aleo",
-                "verify",
-                false,
-                [signResult.signature, `{issuer: ${issuer}, subject: ${subject}, dob: ${data.dob}u32, nationality: ${nationalityField}, expiry: ${data.expiry}u32}`]
-            );
+            const result = await sdk.proveOnChain({
+                programName: "verify_poseidon2.aleo",
+                functionName: "verify",
+                privateFee: false,
+                inputs: [signResult.signature, `{issuer: ${issuer}, subject: ${subject}, dob: ${data.dob}u32, nationality: ${nationalityField}, expiry: ${data.expiry}u32}`]
+            });
             
             console.log("Transaction:", result);
             expect(typeof result).toBe('string');
@@ -85,15 +94,16 @@ describe('ZPassSDK', () => {
     describe('verifyOnChain', () => {
         it('should successfully verify a transaction', async () => {
             // First create a transaction to verify
-            const txId = await sdk.proveOnChain(
-                "test_program",
-                "test_function", 
-                50000,
-                true,
-                ["input1", "input2"]
-            );
+            const txId = await sdk.proveOnChain({
+                programName: "test_program",
+                functionName: "test_function", 
+                privateFee: true,
+                inputs: ["input1", "input2"]
+            });
 
-            const transaction = await ZPassSDK.verifyOnChain(txId);
+            const transaction = await ZPassSDK.verifyOnChain({
+                transactionId: txId
+            });
 
             expect(transaction).toHaveProperty('type');
             expect(transaction).toHaveProperty('status');
@@ -101,16 +111,18 @@ describe('ZPassSDK', () => {
 
         it('should use custom URL when provided', async () => {
             // First create a transaction to verify
-            const txId = await sdk.proveOnChain(
-                "test_program",
-                "test_function",
-                50000,
-                true,
-                ["input1", "input2"]
-            );
+            const txId = await sdk.proveOnChain({
+                programName: "test_program",
+                functionName: "test_function",
+                privateFee: true,
+                inputs: ["input1", "input2"]
+            });
 
             const customUrl = "https://custom.api.com";
-            const transaction = await ZPassSDK.verifyOnChain(txId, customUrl);
+            const transaction = await ZPassSDK.verifyOnChain({
+                transactionId: txId,
+                url: customUrl
+            });
 
             expect(transaction).toHaveProperty('type');
             expect(transaction).toHaveProperty('status');

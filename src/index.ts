@@ -4,6 +4,37 @@ import * as wasm from '../wasm/pkg/issuer';
 export { HashAlgorithm } from '../wasm/pkg/issuer';
 export type { TransactionModel } from '@provablehq/sdk';
 
+interface SDKOptions {
+    privateKey: string;
+    host?: string;
+}
+
+interface SignCredentialOptions {
+    subject: string;
+    data: { [key: string]: any };
+    hashType: wasm.HashAlgorithm;
+}
+
+interface ProveOnChainOptions {
+    programName: string;
+    functionName: string;
+    privateFee: boolean;
+    inputs: string[];
+    feeRecord?: string;
+}
+
+interface VerifyOnChainOptions {
+    transactionId: string;
+    url?: string;
+}
+
+export class SDKError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'SDKError';
+    }
+}
+
 export default class ZPassSDK {
     private programManager: aleo.ProgramManager;
     private keyProvider: aleo.AleoKeyProvider;
@@ -16,18 +47,15 @@ export default class ZPassSDK {
      * @param privateKey - The private key of the account
      * @param host - The host of the network client
      */
-    constructor(
-        privateKey: string,
-        host?: string,
-    ) {
+    constructor({ privateKey, host }: SDKOptions) {
         // Check if WebAssembly is supported
         if (typeof WebAssembly === 'undefined') {
-            throw new Error('WebAssembly is not supported in this environment. ZPassSDK requires WebAssembly support.');
+            throw new SDKError('WebAssembly is not supported in this environment. ZPassSDK requires WebAssembly support.');
         }
 
         // Validate private key format
         if (!privateKey.startsWith('APrivateKey1')) {
-            throw new Error('Invalid private key format. Private key must start with "APrivateKey1"');
+            throw new SDKError('Invalid private key format. Private key must start with "APrivateKey1"');
         }
 
         try {
@@ -47,26 +75,21 @@ export default class ZPassSDK {
             this.lastProgram = null;
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : 'unknown error';
-            throw new Error(`Invalid private key: ${message}`);
+            throw new SDKError(`Invalid private key: ${message}`);
         }
     }
 
     /**
      * Sign an arbitrary credential
-     * @param subject - The subject of the credential
-     * @param data - The data to sign in json format
-     * @param hashType - The hash type to use
+     * @param options - The options for signing a credential
      * @returns The signature and hash
      */
-    public async signCredential(
-        subject: string,
-        data: { [key: string]: any },
-        hashType: wasm.HashAlgorithm,
-    ): Promise<{signature: string, hash: string}> {
+    public async signCredential(options: SignCredentialOptions): Promise<{signature: string, hash: string}> {
+        const { subject, data, hashType } = options;
         const msg = new wasm.SignInboundMessage(subject, data);
         const privateKey = this.programManager.account?.privateKey()?.to_string();
         if (!privateKey) {
-            throw new Error("Private key is not available");
+            throw new SDKError("Private key is not available");
         }
         const { signature, hash } = wasm.sign_message(privateKey, msg, hashType);
         return {
@@ -77,21 +100,11 @@ export default class ZPassSDK {
 
     /**
      * Prove a function on-chain
-     * @param programName - The name of the program to prove
-     * @param functionName - The name of the function to prove
-     * @param fee - The fee to pay for the proof
-     * @param privateFee - Whether the fee is private
-     * @param inputs - The inputs to the function
-     * @param feeRecord - The fee record to use
+     * @param options - The options for proving a function
      * @returns The transaction ID
      */
-    public async proveOnChain(
-        programName: string, 
-        functionName: string,
-        privateFee: boolean,
-        inputs: string[],
-        feeRecord?: string,
-    ): Promise<string> {
+    public async proveOnChain(options: ProveOnChainOptions): Promise<string> {
+        const { programName, functionName, privateFee, inputs, feeRecord } = options;
         const program = await this.programManager.networkClient.getProgram(programName);
         const cacheKey = `${programName}:${functionName}`;
 
@@ -143,14 +156,11 @@ export default class ZPassSDK {
 
     /**
      * Verify a transaction on-chain
-     * @param transactionId - The transaction ID
-     * @param url - The URL of the network client
+     * @param options - The options for verifying a transaction
      * @returns The transaction
      */
-    public static async verifyOnChain(
-        transactionId: string,
-        url?: string,
-    ): Promise<aleo.TransactionModel> {
+    public static async verifyOnChain(options: VerifyOnChainOptions): Promise<aleo.TransactionModel> {
+        const { transactionId, url } = options;
         let networkClient: aleo.AleoNetworkClient;
         if (!url) {
             networkClient = new aleo.AleoNetworkClient("https://api.explorer.provable.com/v1");
