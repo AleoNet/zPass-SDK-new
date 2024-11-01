@@ -108,7 +108,7 @@ pub fn get_field_from_value(str: Option<String>) -> Result<String, String> {
     Ok(field.to_string())
 }
 
-/// Exposes a Rust function to verify a signed credential.
+/// Exposes a Rust function to JavaScript for verifying a signed credential.
 #[wasm_bindgen]
 pub fn verify_signed_credential(signature: &str, address: &str, message: &str) -> Result<bool, String> {
     let (_, signature_bytes) = Signature::<CurrentNetwork>::parse(signature).unwrap();

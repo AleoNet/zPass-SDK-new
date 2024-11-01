@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ZPassSDK, HashAlgorithm } from '../src/index';
 import { verify_signed_credential, get_field_from_value } from '../wasm/pkg/issuer';
-import { Account } from '@provablehq/sdk';
+import { Account, OfflineQuery } from '@provablehq/sdk';
+import { verify_poseidon2 } from './localPrograms/localPrograms';
 
 // Test configuration
 const TEST_PRIVATE_KEY = "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH";
@@ -9,8 +10,15 @@ const TEST_ADDRESS = "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsv
 // const TEST_HOST = "https://api.explorer.provable.com/v1";
 const TEST_HOST = "http://localhost:3030";
 
+type TestContext = {
+    transactionId?: string;
+    verifyingKey?: string;
+    execution?: string;
+};
+
 describe('ZPassSDK', () => {
     let sdk: ZPassSDK;
+    const ctx: TestContext = {};
 
     beforeEach(() => {
         sdk = new ZPassSDK({
@@ -24,13 +32,11 @@ describe('ZPassSDK', () => {
             const subject = TEST_ADDRESS;
             const data = { key: "value" };
             
-            const result = await sdk.signCredential(
-                {
-                    subject,
-                    data,
-                    hashType: HashAlgorithm.POSEIDON2
-                }
-            );
+            const result = await sdk.signCredential({
+                subject,
+                data,
+                hashType: HashAlgorithm.POSEIDON2
+            });
 
             expect(result).toHaveProperty('signature');
             expect(result).toHaveProperty('hash');
@@ -42,20 +48,19 @@ describe('ZPassSDK', () => {
             const subject = TEST_ADDRESS;
             const data = { key: "value" };
             
-            const result = await sdk.signCredential(
-                {
-                    subject,
-                    data,
-                    hashType: HashAlgorithm.POSEIDON2
-                }
-            );
+            const result = await sdk.signCredential({
+                subject,
+                data,
+                hashType: HashAlgorithm.POSEIDON2
+            });
 
             const verified = await verify_signed_credential(result.signature, subject, result.hash);
             expect(verified).toBe(true);
         });
 
         it('should throw error if private key is not available', () => {
-            expect(() => new ZPassSDK({privateKey: 'invalid_private_key'})).toThrow('Invalid private key format. Private key must start with "APrivateKey1"');
+            expect(() => new ZPassSDK({privateKey: 'invalid_private_key'}))
+                .toThrow('Invalid private key format. Private key must start with "APrivateKey1"');
         });
     });
 
@@ -69,13 +74,11 @@ describe('ZPassSDK', () => {
             };
             const nationalityField = get_field_from_value(data.nationality);
             
-            const signResult = await sdk.signCredential(
-                {
-                    subject,
-                    data,
-                    hashType: HashAlgorithm.POSEIDON2
-                }
-            );
+            const signResult = await sdk.signCredential({
+                subject,
+                data,
+                hashType: HashAlgorithm.POSEIDON2
+            });
 
             const issuer = new Account({privateKey: TEST_PRIVATE_KEY}).address().to_string();
 
@@ -86,46 +89,103 @@ describe('ZPassSDK', () => {
                 inputs: [signResult.signature, `{issuer: ${issuer}, subject: ${subject}, dob: ${data.dob}u32, nationality: ${nationalityField}, expiry: ${data.expiry}u32}`]
             });
             
-            console.log("Transaction:", result);
+            console.log("Transaction Id:", result);
             expect(typeof result).toBe('string');
+            expect(result.startsWith('at')).toBe(true);
+            ctx.transactionId = result;
         }, 500000);
     });
 
     describe('verifyOnChain', () => {
         it('should successfully verify a transaction', async () => {
-            // First create a transaction to verify
-            const txId = await sdk.proveOnChain({
-                programName: "test_program",
-                functionName: "test_function", 
-                privateFee: true,
-                inputs: ["input1", "input2"]
-            });
+            const txId = ctx.transactionId!;
 
-            const transaction = await ZPassSDK.verifyOnChain({
-                transactionId: txId
-            });
-
-            expect(transaction).toHaveProperty('type');
-            expect(transaction).toHaveProperty('status');
-        });
-
-        it('should use custom URL when provided', async () => {
-            // First create a transaction to verify
-            const txId = await sdk.proveOnChain({
-                programName: "test_program",
-                functionName: "test_function",
-                privateFee: true,
-                inputs: ["input1", "input2"]
-            });
-
-            const customUrl = "https://custom.api.com";
-            const transaction = await ZPassSDK.verifyOnChain({
+            const { hasExecution, value } = await ZPassSDK.verifyOnChain({
                 transactionId: txId,
-                url: customUrl
+                url: TEST_HOST
             });
 
-            expect(transaction).toHaveProperty('type');
-            expect(transaction).toHaveProperty('status');
+            expect(hasExecution).toBe(true);
+            console.log("Returned value: ", value);
         });
+    });
+
+    describe('proveOffChain', () => {
+        it('should successfully generate an off-chain proof', async () => {
+            const subject = TEST_ADDRESS;
+            const data = {
+                dob: 1990,
+                nationality: "US",
+                expiry: 2030
+            };
+            const nationalityField = get_field_from_value(data.nationality);
+            
+            const signResult = await sdk.signCredential({
+                subject,
+                data,
+                hashType: HashAlgorithm.POSEIDON2
+            });
+
+            const issuer = new Account({privateKey: TEST_PRIVATE_KEY}).address().to_string();
+            const offlineQueryString = `{"state_paths":{},"state_root": "sr1rjxjfdxtr02fl5fgut2z06lpg02tya0tfj2pae6h4p2usdg8gqxqy22lhf"}`;
+            const offlineQuery = OfflineQuery.fromString(offlineQueryString);
+
+            const result = await sdk.proveOffChain({
+                localProgram: verify_poseidon2,
+                functionName: "verify",
+                inputs: [
+                    signResult.signature, 
+                    `{issuer: ${issuer}, subject: ${subject}, dob: ${data.dob}u32, nationality: ${nationalityField}, expiry: ${data.expiry}u32}`
+                ],
+                offlineQuery
+            });
+            
+            console.log("Result: ", result);
+            expect(result).toHaveProperty('execution');
+            expect(typeof result.execution).toBe('string');
+            ctx.execution = result.execution;
+            ctx.verifyingKey = result.verifyingKey;
+        }, 500000);
+    });
+
+    describe('verifyOffChain', () => {
+        it('should successfully verify an off-chain proof', async () => {
+            const subject = TEST_ADDRESS;
+            const data = {
+                dob: 1990,
+                nationality: "US",
+                expiry: 2030
+            };
+            const nationalityField = get_field_from_value(data.nationality);
+            
+            const signResult = await sdk.signCredential({
+                subject,
+                data,
+                hashType: HashAlgorithm.POSEIDON2
+            });
+
+            const issuer = new Account({privateKey: TEST_PRIVATE_KEY}).address().to_string();
+            const offlineQueryString = `{"state_paths":{},"state_root": "sr1rjxjfdxtr02fl5fgut2z06lpg02tya0tfj2pae6h4p2usdg8gqxqy22lhf"}`;
+            const offlineQuery = OfflineQuery.fromString(offlineQueryString);
+            
+            const proofResult = await sdk.proveOffChain({
+                localProgram: verify_poseidon2,
+                functionName: "verify",
+                inputs: [
+                    signResult.signature, 
+                    `{issuer: ${issuer}, subject: ${subject}, dob: ${data.dob}u32, nationality: ${nationalityField}, expiry: ${data.expiry}u32}`
+                ],
+                offlineQuery
+            });
+
+            const verificationResult = await ZPassSDK.verifyOffChain({
+                execution: ctx.execution!,
+                program: verify_poseidon2,
+                functionName: "verify",
+                verifyingKey: ctx.verifyingKey!
+            });
+
+            expect(verificationResult).toBe(true);
+        }, 500000);
     });
 }); 

@@ -1,4 +1,5 @@
 import { HashAlgorithm } from '../../wasm/pkg/issuer';
+import { OfflineQuery } from '@provablehq/wasm';
 
 export { HashAlgorithm };
 
@@ -25,6 +26,7 @@ export interface ProveOffChainOptions {
     localProgram: string;
     functionName: string;
     inputs: string[];
+    offlineQuery: OfflineQuery;
 }
 
 export interface VerifyOnChainOptions {
@@ -37,4 +39,10 @@ export interface VerifyOffChainOptions {
     program: string;
     functionName: string;
     verifyingKey: string;
+}
+
+export interface GetRecordsOptions {
+    program: string;
+    functionName: string;
+    inputs: string[];
 }

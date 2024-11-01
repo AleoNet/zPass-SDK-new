@@ -1,4 +1,17 @@
-import * as aleo from '@provablehq/sdk';
+import { 
+    Account, 
+    Program, 
+    ProgramManager, 
+    AleoKeyProvider, 
+    NetworkRecordProvider, 
+    AleoKeyProviderParams,
+    ProgramManagerBase,
+    FunctionExecution,
+    verifyFunctionExecution,
+    AleoNetworkClient,
+    PrivateKey,
+    VerifyingKey
+} from '@provablehq/sdk/testnet.js';
 import * as wasm from '../../wasm/pkg/issuer';
 import { SDKError } from '../errors';
 import { 
@@ -7,16 +20,17 @@ import {
     ProveOnChainOptions, 
     VerifyOnChainOptions,
     ProveOffChainOptions,
-    VerifyOffChainOptions
+    VerifyOffChainOptions,
+    GetRecordsOptions,
 } from '../interfaces';
 import type { TransactionModel } from '@provablehq/sdk';
 
 export type { TransactionModel };
 
 export class ZPassSDK {
-    private programManager: aleo.ProgramManager;
-    private keyProvider: aleo.AleoKeyProvider;
-    private recordProvider: aleo.NetworkRecordProvider;
+    private programManager: ProgramManager;
+    private keyProvider: AleoKeyProvider;
+    private recordProvider: NetworkRecordProvider;
     private lastProgram: string | null;
     private host: string;
 
@@ -30,16 +44,16 @@ export class ZPassSDK {
         }
 
         try {
-            const account = new aleo.Account({privateKey});
+            const account = new Account({privateKey});
             if (!host) {
-                this.programManager = new aleo.ProgramManager();
+                this.programManager = new ProgramManager();
                 this.host = "https://api.explorer.provable.com/v1";
             } else {
-                this.programManager = new aleo.ProgramManager(host);
+                this.programManager = new ProgramManager(host);
                 this.host = host;
             }
-            this.keyProvider = new aleo.AleoKeyProvider();
-            this.recordProvider = new aleo.NetworkRecordProvider(account, this.programManager.networkClient);
+            this.keyProvider = new AleoKeyProvider();
+            this.recordProvider = new NetworkRecordProvider(account, this.programManager.networkClient);
             this.programManager.setAccount(account);
             this.programManager.setKeyProvider(this.keyProvider);
             this.programManager.setRecordProvider(this.recordProvider);
@@ -48,6 +62,11 @@ export class ZPassSDK {
             const message = error instanceof Error ? error.message : 'unknown error';
             throw new SDKError(`Invalid private key: ${message}`);
         }
+    }
+
+    public setNewHost(host: string) {
+        this.host = host;
+        this.programManager.setHost(host);
     }
 
     public async signCredential(options: SignCredentialOptions): Promise<{signature: string, hash: string}> {
@@ -80,12 +99,12 @@ export class ZPassSDK {
             this.lastProgram = program;
         }
 
-        const keyParams = new aleo.AleoKeyProviderParams({
+        const keyParams = new AleoKeyProviderParams({
             cacheKey: cacheKey,
         });
 
-        const fee = Number(await aleo.ProgramManagerBase.estimateExecutionFee(
-            this.programManager.account?.privateKey(),
+        const fee = Number(await ProgramManagerBase.estimateExecutionFee(
+            this.programManager.account?.privateKey() as PrivateKey,
             program,
             functionName,
             inputs,
@@ -115,8 +134,8 @@ export class ZPassSDK {
         return transaction.transactionId();
     }
 
-    public async proveOffChain(options: ProveOffChainOptions) {
-        const { localProgram, functionName, inputs } = options;
+    public async proveOffChain(options: ProveOffChainOptions): Promise<{outputs: string[], execution: string, provingKey: string, verifyingKey: string}> {
+        const { localProgram, functionName, inputs, offlineQuery } = options;
         
         // Ensure the program is valid and that it contains the function specified
         const program = this.programManager.createProgramFromSource(localProgram);
@@ -127,8 +146,7 @@ export class ZPassSDK {
         const cacheKey = `${program_id}:${functionName}`;
 
         // Get the program imports
-        const imports =
-          this.programManager.networkClient.getProgramImports(localProgram);
+        const imports = await this.programManager.networkClient.getProgramImports(localProgram);
 
         // Get the proving and verifying keys for the function
         if (this.lastProgram !== localProgram) {
@@ -143,7 +161,7 @@ export class ZPassSDK {
         }
 
         // Pass the cache key to the execute function
-        const keyParams = new aleo.AleoKeyProviderParams({
+        const keyParams = new AleoKeyProviderParams({
           cacheKey: cacheKey,
         });
 
@@ -157,38 +175,50 @@ export class ZPassSDK {
           keyParams,
           this.keyProvider.getKeys(cacheKey)[0],
           this.keyProvider.getKeys(cacheKey)[1],
-          this.programManager.account?.privateKey()
+          this.programManager.account?.privateKey(),
+          offlineQuery
         );
-
         const outputs = response.getOutputs();
-        const execution = response.getExecution().toString();
+        const execution = response.getExecution()?.toString();
+        const provingKey = response.getProvingKey()?.toString();
+        const verifyingKey = response.getVerifyingKey()?.toString();
 
         return {
             outputs,
-            execution,
+            execution: execution!,
+            provingKey: provingKey!,
+            verifyingKey,
         };
     }
 
-    public static async verifyOnChain(options: VerifyOnChainOptions): Promise<TransactionModel> {
+    public static async verifyOnChain(options: VerifyOnChainOptions): Promise<{hasExecution: boolean, value: string}> {
         const { transactionId, url } = options;
-        let networkClient: aleo.AleoNetworkClient;
-        if (!url) {
-            networkClient = new aleo.AleoNetworkClient("https://api.explorer.provable.com/v1");
-        } else {
-            networkClient = new aleo.AleoNetworkClient(url);
-        }
+
+        const baseUrl = !url ? "https://api.explorer.provable.com/v1" : url;
+        const networkClient = new AleoNetworkClient(baseUrl);
+
         const transaction = await networkClient.getTransaction(transactionId);
-        return transaction;
+        const hasExecution = transaction.type === "execute" ? true : false;
+        const value = transaction.execution.transitions?.[0].outputs?.[0].value ?? "";
+        return {
+            hasExecution,
+            value,
+        };
     }
 
-    public static async verifyOffChain(options: VerifyOffChainOptions): Promise<string> {
+    public static async verifyOffChain(options: VerifyOffChainOptions): Promise<boolean> {
         const { execution, program, functionName, verifyingKey } = options;
-        const res = aleo.verifyFunctionExecution(
-            aleo.FunctionExecution.fromString(execution),
-            verifyingKey, // This should be synthesize by verifier
-            aleo.Program.fromString(program),
+        const res = verifyFunctionExecution(
+            FunctionExecution.fromString(execution),
+            VerifyingKey.fromString(verifyingKey), // This should be synthesize by verifier
+            Program.fromString(program),
             functionName
         );
         return res;
+    }
+
+    public async getRecords(options: GetRecordsOptions) {
+        // Not implemented yet
+        throw new SDKError("Not implemented yet");
     }
 } 

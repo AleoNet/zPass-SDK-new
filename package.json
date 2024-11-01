@@ -25,7 +25,7 @@
     "prepublishOnly": "npm run clean && npm run build && npm run test && npm run lint",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
-    "test": "vitest",
+    "test": "vitest run --reporter verbose",
     "test:watch": "vitest watch",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint src"
