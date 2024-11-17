@@ -16,7 +16,7 @@ program verify_poseidon2.aleo {
         expiry: u32
     }
 
-    transition issue(
+    transition verify(
         sig: signature,
         msg: Credentials,
     ) -> public bool {

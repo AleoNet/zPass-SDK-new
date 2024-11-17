@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ZPassSDK, HashAlgorithm } from '../src/index';
 import { verify_signed_credential, get_field_from_value } from '../wasm/pkg/issuer';
-import { Account, OfflineQuery } from '@provablehq/sdk';
-import { verify_poseidon2, verify_poseidon2_zpass } from './localPrograms/localPrograms';
+import { Account, OfflineQuery } from '@provablehq/sdk/mainnet.js';
+import { verify_poseidon2 } from './localPrograms/localPrograms';
 
 // Test configuration
 const TEST_PRIVATE_KEY = "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH";
@@ -13,6 +13,7 @@ const TEST_HOST = "http://localhost:3030";
 type TestContext = {
     transactionId?: string;
     zPassRecordTxId?: string;
+    zPassRecord?: string;
     verifyingKey?: string;
     execution?: string;
 };
@@ -214,7 +215,7 @@ describe('ZPassSDK', () => {
     });
 
     describe('verifyOnChain', () => {
-        it('should successfully verify a transaction', async () => {
+        it('should successfully verify an onchain transaction proof', async () => {
             const txId = ctx.transactionId!;
 
             const { hasExecution, outputs } = await ZPassSDK.verifyOnChain({
@@ -232,6 +233,21 @@ describe('ZPassSDK', () => {
             const result = await sdk.getZPassRecord(ctx.zPassRecordTxId!);
             console.log("zPass record:", result);
             expect(typeof result).toBe('string');
+            ctx.zPassRecord = result;
         });
+    });
+
+    describe('zPassUsageTest', () => {
+        it('should successfully verify an imported zPass', async () => {
+            const result = await sdk.proveOnChain({
+                programName: "zpass_usage_test.aleo",
+                functionName: "verify_zpass",
+                privateFee: false,
+                fee: 3000,
+                inputs: [ctx.zPassRecord!]
+            });
+            console.log("zPass usage test result:", result);
+            expect(typeof result).toBe('string');
+        }, 500000);
     });
 }); 

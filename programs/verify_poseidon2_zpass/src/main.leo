@@ -1,6 +1,6 @@
 // The 'verify_poseidon2_zpass' program.
 program verify_poseidon2_zpass.aleo {
-    record zPass {
+    record ZPass {
         owner: address,
         issuer: address,
         dob: u32,
@@ -19,10 +19,10 @@ program verify_poseidon2_zpass.aleo {
     transition issue(
         sig: signature,
         msg: Credentials,
-    ) -> zPass {
+    ) -> ZPass {
         let res: bool = signature::verify(sig, msg.issuer, Poseidon2::hash_to_field(msg));
         assert_eq(res, true);
-        return zPass {
+        return ZPass {
             owner: msg.issuer,
             issuer: msg.issuer,
             dob: msg.dob,

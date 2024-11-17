@@ -6,4 +6,6 @@ export type {
 } from './interfaces';
 export { HashAlgorithm } from '../wasm/pkg/issuer';
 export { SDKError } from './errors';
-export { ZPassSDK, type TransactionModel, type Output } from './core/sdk';
+export type { TransactionModel, Output } from './core/sdk';
+export { OfflineQuery, Account } from './core/sdk';
+export { ZPassSDK } from './core/sdk';

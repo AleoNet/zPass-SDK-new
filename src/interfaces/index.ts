@@ -18,7 +18,7 @@ export interface ProveOffChainOptions {
     localProgram: string;
     functionName: string;
     inputs: string[];
-    offlineQuery: OfflineQuery;
+    offlineQuery?: OfflineQuery;
 }
 
 export interface VerifyOnChainOptions {

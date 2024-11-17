@@ -1,0 +1,13 @@
+{
+  "program": "zpass_usage_test.aleo",
+  "version": "0.1.0",
+  "description": "",
+  "license": "MIT",
+  "dependencies": [
+    {
+      "name": "verify_poseidon2_zpass.aleo",
+      "location": "local",
+      "path": "../verify_poseidon2_zpass"
+    }
+  ]
+}

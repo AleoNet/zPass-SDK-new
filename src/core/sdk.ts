@@ -12,7 +12,8 @@ import {
     RecordCiphertext,
     RecordPlaintext,
     ViewKey,
-} from '@provablehq/sdk/testnet.js';
+    OfflineQuery,
+} from '@provablehq/sdk/mainnet.js';
 import * as wasm from '../../wasm/pkg/issuer';
 import { SDKError } from '../errors';
 import { 
@@ -26,9 +27,10 @@ import {
     IssueZPassOptions,
     OnChainInteractOptions,
 } from '../interfaces';
-import type { TransactionModel, Output } from '@provablehq/sdk';
+import type { TransactionModel, Output } from '@provablehq/sdk/mainnet.js';
 
 export type { TransactionModel, Output };
+export { OfflineQuery, Account };
 
 export class ZPassSDK {
     private programManager: ProgramManager;
