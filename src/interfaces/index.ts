@@ -46,6 +46,7 @@ export interface BaseChainOptions {
     functionName: string;
     privateFee: boolean;
     inputs: string[];
+    fee: number;
     feeRecord?: string;
 }
 

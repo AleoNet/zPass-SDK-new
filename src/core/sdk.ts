@@ -5,11 +5,9 @@ import {
     AleoKeyProvider, 
     NetworkRecordProvider, 
     AleoKeyProviderParams,
-    ProgramManagerBase,
     FunctionExecution,
     verifyFunctionExecution,
     AleoNetworkClient,
-    PrivateKey,
     VerifyingKey,
     RecordCiphertext,
     RecordPlaintext,
@@ -37,7 +35,6 @@ export class ZPassSDK {
     private keyProvider: AleoKeyProvider;
     private recordProvider: NetworkRecordProvider;
     private lastProgram: string | null;
-    private host: string;
 
     constructor({ privateKey, host }: SDKOptions) {
         if (typeof WebAssembly === 'undefined') {
@@ -50,13 +47,7 @@ export class ZPassSDK {
 
         try {
             const account = new Account({privateKey});
-            if (!host) {
-                this.programManager = new ProgramManager();
-                this.host = "https://api.explorer.provable.com/v1";
-            } else {
-                this.programManager = new ProgramManager(host);
-                this.host = host;
-            }
+            this.programManager = new ProgramManager(host);
             this.keyProvider = new AleoKeyProvider();
             this.recordProvider = new NetworkRecordProvider(account, this.programManager.networkClient);
             this.programManager.setAccount(account);
@@ -70,7 +61,6 @@ export class ZPassSDK {
     }
 
     public setNewHost(host: string) {
-        this.host = host;
         this.programManager.setHost(host);
     }
 
@@ -215,7 +205,7 @@ export class ZPassSDK {
     }
 
     async onChainInteract(options: OnChainInteractOptions): Promise<string> {
-        const { programName, functionName, inputs, privateFee, feeRecord } = options;
+        const { programName, functionName, inputs, privateFee, fee, feeRecord } = options;
         const program = await this.programManager.networkClient.getProgram(programName);
         const cacheKey = `${programName}:${functionName}`;
 
@@ -233,19 +223,6 @@ export class ZPassSDK {
         const keyParams = new AleoKeyProviderParams({
             cacheKey: cacheKey,
         });
-
-        const fee = Number(await ProgramManagerBase.estimateExecutionFee(
-            this.programManager.account?.privateKey() as PrivateKey,
-            program,
-            functionName,
-            inputs,
-            this.host,
-            undefined,
-            this.keyProvider.getKeys(cacheKey)[0],
-            this.keyProvider.getKeys(cacheKey)[1],
-            undefined,
-        ));
-        console.log("Fee: ", fee);
 
         const transaction = await this.programManager.buildExecutionTransaction({
             programName,

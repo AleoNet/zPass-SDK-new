@@ -87,6 +87,7 @@ describe('ZPassSDK', () => {
                 programName: "verify_poseidon2_zpass.aleo",
                 functionName: "issue",
                 privateFee: false,
+                fee: 3000,
                 inputs: [signResult.signature, `{issuer: ${issuer}, subject: ${subject}, dob: ${data.dob}u32, nationality: ${nationalityField}, expiry: ${data.expiry}u32}`]
             });
             
@@ -118,6 +119,7 @@ describe('ZPassSDK', () => {
                 programName: "verify_poseidon2.aleo",
                 functionName: "verify",
                 privateFee: false,
+                fee: 3000,
                 inputs: [signResult.signature, `{issuer: ${issuer}, subject: ${subject}, dob: ${data.dob}u32, nationality: ${nationalityField}, expiry: ${data.expiry}u32}`]
             });
             
