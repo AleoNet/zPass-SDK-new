@@ -14,14 +14,6 @@ export interface SignCredentialOptions {
     hashType: HashAlgorithm;
 }
 
-export interface ProveOnChainOptions {
-    programName: string;
-    functionName: string;
-    privateFee: boolean;
-    inputs: string[];
-    feeRecord?: string;
-}
-
 export interface ProveOffChainOptions {
     localProgram: string;
     functionName: string;
@@ -38,7 +30,9 @@ export interface VerifyOffChainOptions {
     execution: string;
     program: string;
     functionName: string;
-    verifyingKey: string;
+    inputs?: string[];
+    verifyingKey?: string;
+    url?: string;
 }
 
 export interface GetRecordsOptions {
@@ -46,3 +40,15 @@ export interface GetRecordsOptions {
     functionName: string;
     inputs: string[];
 }
+
+export interface BaseChainOptions {
+    programName: string;
+    functionName: string;
+    privateFee: boolean;
+    inputs: string[];
+    feeRecord?: string;
+}
+
+export interface IssueZPassOptions extends BaseChainOptions {}
+export interface ProveOnChainOptions extends BaseChainOptions {}
+export interface OnChainInteractOptions extends BaseChainOptions {}

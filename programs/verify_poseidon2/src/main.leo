@@ -1,5 +1,13 @@
-// The 'verify_poseidon2' program.
+// The 'verify_poseidon2_zpass' program.
 program verify_poseidon2.aleo {
+    record zPass {
+        owner: address,
+        issuer: address,
+        dob: u32,
+        nationality: field,
+        expiry: u32
+    }
+
     struct Credentials {
         issuer: address,
         subject: address,
@@ -8,7 +16,7 @@ program verify_poseidon2.aleo {
         expiry: u32
     }
 
-    transition verify(
+    transition issue(
         sig: signature,
         msg: Credentials,
     ) -> public bool {

@@ -10,7 +10,10 @@ import {
     verifyFunctionExecution,
     AleoNetworkClient,
     PrivateKey,
-    VerifyingKey
+    VerifyingKey,
+    RecordCiphertext,
+    RecordPlaintext,
+    ViewKey,
 } from '@provablehq/sdk/testnet.js';
 import * as wasm from '../../wasm/pkg/issuer';
 import { SDKError } from '../errors';
@@ -22,10 +25,12 @@ import {
     ProveOffChainOptions,
     VerifyOffChainOptions,
     GetRecordsOptions,
+    IssueZPassOptions,
+    OnChainInteractOptions,
 } from '../interfaces';
-import type { TransactionModel } from '@provablehq/sdk';
+import type { TransactionModel, Output } from '@provablehq/sdk';
 
-export type { TransactionModel };
+export type { TransactionModel, Output };
 
 export class ZPassSDK {
     private programManager: ProgramManager;
@@ -83,8 +88,134 @@ export class ZPassSDK {
         };
     }
 
+    public async issueZPass(options: IssueZPassOptions): Promise<string> {
+        return this.onChainInteract(options);
+    }
+
+    public async getZPassRecord(transactionId: string): Promise<string> {
+        const tx = await this.programManager.networkClient.getTransaction(transactionId);
+        const record = <string>tx.execution?.transitions?.[0].outputs?.[0].value;
+
+        const recordCiphertext = <RecordCiphertext>RecordCiphertext.fromString(record);
+        const recordPlaintext = <RecordPlaintext>recordCiphertext.decrypt(this.programManager.account?.viewKey() as ViewKey);
+
+        return recordPlaintext.toString();
+    }
+
     public async proveOnChain(options: ProveOnChainOptions): Promise<string> {
-        const { programName, functionName, privateFee, inputs, feeRecord } = options;
+        return this.onChainInteract(options);
+    }
+
+    public async proveOffChain(options: ProveOffChainOptions): Promise<{outputs: string[], execution: string, verifyingKey: string}> {
+        const { localProgram, functionName, inputs, offlineQuery } = options;
+        
+        // Ensure the program is valid and that it contains the function specified
+        const program = this.programManager.createProgramFromSource(localProgram);
+        const program_id = program.id();
+        if (!program.hasFunction(functionName)) {
+          throw `Program ${program_id} does not contain function ${functionName}`;
+        }
+        const cacheKey = `${program_id}:${functionName}`;
+
+        // Get the program imports
+        const imports = await this.programManager.networkClient.getProgramImports(localProgram);
+
+        // Get the proving and verifying keys for the function
+        if (this.lastProgram !== localProgram) {
+          const keys = await this.programManager.synthesizeKeys(
+            localProgram,
+            functionName,
+            inputs,
+            this.programManager.account?.privateKey()
+          );
+          this.keyProvider.cacheKeys(cacheKey, keys);
+          this.lastProgram = localProgram;
+        }
+
+        // Pass the cache key to the execute function
+        const keyParams = new AleoKeyProviderParams({
+          cacheKey: cacheKey,
+        });
+
+        // Execute the function locally
+        let response = await this.programManager.run(
+          localProgram,
+          functionName,
+          inputs,
+          true,
+          imports,
+          keyParams,
+          this.keyProvider.getKeys(cacheKey)[0],
+          this.keyProvider.getKeys(cacheKey)[1],
+          this.programManager.account?.privateKey(),
+          offlineQuery
+        );
+        const outputs = response.getOutputs();
+        const execution = response.getExecution()?.toString();
+        const verifyingKey = response.getVerifyingKey()?.toString();
+
+        return {
+            outputs,
+            execution: execution!,
+            verifyingKey,
+        };
+    }
+
+    public static async verifyOnChain(options: VerifyOnChainOptions): Promise<{hasExecution: boolean, outputs: Output[]}> {
+        const { transactionId, url } = options;
+
+        const baseUrl = !url ? "https://api.explorer.provable.com/v1" : url;
+        const networkClient = new AleoNetworkClient(baseUrl);
+
+        const transaction = await networkClient.getTransaction(transactionId);
+        const hasExecution = transaction.type === "execute" ? true : false;
+        const outputs = transaction.execution.transitions?.[0].outputs;
+        return {
+            hasExecution,
+            outputs: outputs ?? [],
+        };
+    }
+
+    public static async verifyOffChain(options: VerifyOffChainOptions): Promise<boolean> {
+        const { execution, program, functionName, inputs, verifyingKey, url } = options;
+        
+        // Validate that at least one of inputs or verifyingKey is provided
+        if (!inputs && !verifyingKey) {
+            throw new SDKError("Either inputs or verifyingKey must be provided");
+        }
+
+        let verifyingKeyToUse: string;
+        
+        if (!verifyingKey && inputs) {
+            // Branch 1: Only use inputs if verifyingKey is not provided
+            const programManager = new ProgramManager(url, new AleoKeyProvider());
+            const keys = await programManager.synthesizeKeys(
+                program,
+                functionName,
+                inputs,
+            );
+            verifyingKeyToUse = keys[1].toString();
+        } else {
+            // Branch 2: Priority branch - use verifyingKey if provided
+            verifyingKeyToUse = verifyingKey!;
+        }
+
+        const res = verifyFunctionExecution(
+            FunctionExecution.fromString(execution),
+            VerifyingKey.fromString(verifyingKeyToUse),
+            Program.fromString(program),
+            functionName
+        );
+        return res;
+    }
+
+    public async getRecords(options: GetRecordsOptions) {
+        // Not implemented yet
+        throw new SDKError("Not implemented yet");
+    }
+
+    async onChainInteract(options: OnChainInteractOptions): Promise<string> {
+        const { programName, functionName, inputs, privateFee, feeRecord } = options;
         const program = await this.programManager.networkClient.getProgram(programName);
         const cacheKey = `${programName}:${functionName}`;
 
@@ -132,93 +263,5 @@ export class ZPassSDK {
         await this.programManager.networkClient.submitTransaction(transaction);
 
         return transaction.transactionId();
-    }
-
-    public async proveOffChain(options: ProveOffChainOptions): Promise<{outputs: string[], execution: string, provingKey: string, verifyingKey: string}> {
-        const { localProgram, functionName, inputs, offlineQuery } = options;
-        
-        // Ensure the program is valid and that it contains the function specified
-        const program = this.programManager.createProgramFromSource(localProgram);
-        const program_id = program.id();
-        if (!program.hasFunction(functionName)) {
-          throw `Program ${program_id} does not contain function ${functionName}`;
-        }
-        const cacheKey = `${program_id}:${functionName}`;
-
-        // Get the program imports
-        const imports = await this.programManager.networkClient.getProgramImports(localProgram);
-
-        // Get the proving and verifying keys for the function
-        if (this.lastProgram !== localProgram) {
-          const keys = await this.programManager.synthesizeKeys(
-            localProgram,
-            functionName,
-            inputs,
-            this.programManager.account?.privateKey()
-          );
-          this.keyProvider.cacheKeys(cacheKey, keys);
-          this.lastProgram = localProgram;
-        }
-
-        // Pass the cache key to the execute function
-        const keyParams = new AleoKeyProviderParams({
-          cacheKey: cacheKey,
-        });
-
-        // Execute the function locally
-        let response = await this.programManager.run(
-          localProgram,
-          functionName,
-          inputs,
-          true,
-          imports,
-          keyParams,
-          this.keyProvider.getKeys(cacheKey)[0],
-          this.keyProvider.getKeys(cacheKey)[1],
-          this.programManager.account?.privateKey(),
-          offlineQuery
-        );
-        const outputs = response.getOutputs();
-        const execution = response.getExecution()?.toString();
-        const provingKey = response.getProvingKey()?.toString();
-        const verifyingKey = response.getVerifyingKey()?.toString();
-
-        return {
-            outputs,
-            execution: execution!,
-            provingKey: provingKey!,
-            verifyingKey,
-        };
-    }
-
-    public static async verifyOnChain(options: VerifyOnChainOptions): Promise<{hasExecution: boolean, value: string}> {
-        const { transactionId, url } = options;
-
-        const baseUrl = !url ? "https://api.explorer.provable.com/v1" : url;
-        const networkClient = new AleoNetworkClient(baseUrl);
-
-        const transaction = await networkClient.getTransaction(transactionId);
-        const hasExecution = transaction.type === "execute" ? true : false;
-        const value = transaction.execution.transitions?.[0].outputs?.[0].value ?? "";
-        return {
-            hasExecution,
-            value,
-        };
-    }
-
-    public static async verifyOffChain(options: VerifyOffChainOptions): Promise<boolean> {
-        const { execution, program, functionName, verifyingKey } = options;
-        const res = verifyFunctionExecution(
-            FunctionExecution.fromString(execution),
-            VerifyingKey.fromString(verifyingKey), // This should be synthesize by verifier
-            Program.fromString(program),
-            functionName
-        );
-        return res;
-    }
-
-    public async getRecords(options: GetRecordsOptions) {
-        // Not implemented yet
-        throw new SDKError("Not implemented yet");
     }
 } 
