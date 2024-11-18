@@ -67,8 +67,8 @@ export class ZPassSDK {
     }
 
     public async signCredential(options: SignCredentialOptions): Promise<{signature: string, hash: string}> {
-        const { subject, data, hashType, privateKey } = options;
-        const msg = new wasm.SignInboundMessage(subject, data);
+        const { data, hashType, privateKey } = options;
+        const msg = new wasm.SignInboundMessage(data);
         const privateKeyToUse = privateKey ?? this.programManager.account?.privateKey()?.to_string();
         if (!privateKeyToUse) {
             throw new SDKError("Private key is not available");

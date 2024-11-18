@@ -9,7 +9,6 @@ export interface SDKOptions {
 }
 
 export interface SignCredentialOptions {
-    subject: string;
     data: { [key: string]: any };
     hashType: HashAlgorithm;
     privateKey?: string;

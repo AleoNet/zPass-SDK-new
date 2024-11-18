@@ -71,7 +71,6 @@ pub enum HashAlgorithm {
 #[wasm_bindgen]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SignInboundMessage {
-    pub(crate) subject: String,
     pub(crate) data: JsonValue,
 }
 
@@ -79,19 +78,13 @@ pub struct SignInboundMessage {
 impl SignInboundMessage {
     /// Constructor for `SignInboundMessage`.
     #[wasm_bindgen(constructor)]
-    pub fn new(subject: String, data: JsValue) -> Result<SignInboundMessage, JsValue> {
+    pub fn new(data: JsValue) -> Result<SignInboundMessage, JsValue> {
          // Convert JsValue to serde_json::Value
          let data: JsonValue = serde_wasm_bindgen::from_value(data)
          .map_err(|e| JsValue::from_str(&format!("Failed to parse data: {}", e)))?;
 
         // Create a new instance with provided values
-        Ok(SignInboundMessage { subject, data })
-    }
-
-    // Getter methods for various fields...
-    #[wasm_bindgen(getter)]
-    pub fn subject(&self) -> String {
-        self.subject.clone()
+        Ok(SignInboundMessage { data })
     }
 
     #[wasm_bindgen(getter)]

@@ -29,33 +29,43 @@ pub fn convert_data_to_struct(data: JsonValue, logger: &dyn Logger) -> IndexMap<
     let mut members: IndexMap<String, Plaintext<CurrentNetwork>> = IndexMap::new();
 
     for (key, value) in data.as_object().unwrap().clone().into_iter() {
-        //let identifier = Identifier::<CurrentNetwork>::from_str(key).unwrap();
-        //TODO: check value type and allocate proper snarkvm datatype dependant on type
         match value {
             JsonValue::String(s) => {
-                let plaintext = Plaintext::from(Literal::Field(string_to_field(Some(s)).unwrap()));
-                members.insert(key, plaintext);
-            }
-            JsonValue::Number(n) => {
-                let number = n.as_u64().unwrap() as u32;
-                let plaintext = Plaintext::from(Literal::U32(U32::<CurrentNetwork>::new(number)));
-                members.insert(key, plaintext);
-            }
-            JsonValue::Bool(b) => {
-                let plaintext = Plaintext::from(Literal::Boolean(Boolean::<CurrentNetwork>::new(b)));
-                members.insert(key, plaintext);
-            }
-            JsonValue::Null => {
-                let plaintext = Plaintext::from(Literal::Field(Field::<CurrentNetwork>::zero()));
+                let plaintext = if s.starts_with("aleo1") {
+                    // Handle Aleo address type
+                    let address = Address::<CurrentNetwork>::from_str(&s)
+                        .unwrap_or_else(|e| panic!("Failed to parse Aleo address: {}", e));
+                    Plaintext::from(Literal::Address(address))
+                } else if s.ends_with("field") {
+                    // Handle field type: "123field"
+                    let num_str = s.trim_end_matches("field");
+                    let field = string_to_field(Some(num_str.to_string()))
+                        .unwrap_or_else(|e| panic!("Failed to parse field: {}", e));
+                    Plaintext::from(Literal::Field(field))
+                } else if s.ends_with("u32") {
+                    // Handle u32 type: "123u32"
+                    let num_str = s.trim_end_matches("u32");
+                    let number = num_str.parse::<u32>()
+                        .unwrap_or_else(|e| panic!("Failed to parse u32: {}", e));
+                    Plaintext::from(Literal::U32(U32::<CurrentNetwork>::new(number)))
+                } else if s.ends_with("bool") {
+                    // Handle boolean type: "truebool" or "falsebool"
+                    let bool_str = s.trim_end_matches("bool");
+                    let b = bool_str.parse::<bool>()
+                        .unwrap_or_else(|e| panic!("Failed to parse boolean: {}", e));
+                    Plaintext::from(Literal::Boolean(Boolean::<CurrentNetwork>::new(b)))
+                } else {
+                    // Default to Field type for unrecognized suffixes
+                    let field = string_to_field(Some(s)).unwrap();
+                    Plaintext::from(Literal::Field(field))
+                };
                 members.insert(key, plaintext);
             }
             _ => {
                 logger.log(&format!("Unsupported data type: {:?}", value));
             }
-            //TODO: Add support for ArrayType and StructType nested
         }
     }
-
     members
 }
 
@@ -88,10 +98,8 @@ pub(crate) fn insert_to_map(map: &mut IndexMap<Identifier<CurrentNetwork>, Plain
 }
 
 pub(crate) fn generate_message_with_addresses_and_fields(payload: Credential) -> Result<Value<CurrentNetwork>, anyhow::Error> {
-    let mut map = IndexMap::with_capacity(3);
-
-    insert_to_map(&mut map, "issuer", Plaintext::from(Literal::Address(payload.issuer)))?;
-    insert_to_map(&mut map, "subject", Plaintext::from(Literal::Address(payload.subject)))?;
+    // Initialize map with capacity matching payload data size
+    let mut map = IndexMap::with_capacity(payload.data.len());
 
     for (key, value) in payload.data.iter() {
         insert_to_map(&mut map, key, value.clone())?;

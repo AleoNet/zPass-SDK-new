@@ -31,11 +31,15 @@ describe('ZPassSDK', () => {
 
     describe('signCredential', () => {
         it('should successfully sign a credential', async () => {
+            const issuer = new Account({privateKey: TEST_PRIVATE_KEY}).address().to_string();
             const subject = TEST_ADDRESS;
-            const data = { key: "value" };
+            const data = { 
+                issuer: issuer,
+                subject: subject,
+                number: "12398field",
+            };
             
             const result = await sdk.signCredential({
-                subject,
                 data,
                 hashType: HashAlgorithm.POSEIDON2
             });
@@ -47,16 +51,20 @@ describe('ZPassSDK', () => {
         });
 
         it('should successfully verify a signed credential', async () => {
+            const issuer = new Account({privateKey: TEST_PRIVATE_KEY}).address().to_string();
             const subject = TEST_ADDRESS;
-            const data = { key: "value" };
+            const data = { 
+                issuer: issuer,
+                subject: subject,
+                number: "12398field",
+            };
             
             const result = await sdk.signCredential({
-                subject,
                 data,
                 hashType: HashAlgorithm.POSEIDON2
             });
 
-            const verified = await verify_signed_credential(result.signature, subject, result.hash);
+            const verified = await verify_signed_credential(result.signature, issuer, result.hash);
             expect(verified).toBe(true);
         });
 
