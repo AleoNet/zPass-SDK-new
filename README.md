@@ -9,13 +9,14 @@
    ```
 3. Set up local devnet:
    - Clone [snarkOS](https://github.com/AleoNet/snarkOS)
-   - Start local devnet in testnet mode:
+   - Start local devnet in mainnet mode:
      ```bash
      ./devnet
      ```
-4. Deploy program to local devnet:
+   - Follow instructions and select `mainnet` when prompted
+4. Deploy each program to local devnet:
    ```bash
-   cd program/
+   cd programs/<PROGRAM>
    leo deploy # Uses .env.example with validator 0's private key
    ```
    Note: The validator 0's private key in .env.example has test tokens for local devnet
@@ -29,7 +30,8 @@
 ## Roadmap
 
 - [ ] Add records finder
-- [ ] Add mainnet support
+- [x] Add mainnet support
 - [ ] Optimise program execution
 - [ ] Web Worker integration  
+- [ ] Add universal wallet adapter support
 - [ ] Documentation and setup guide
