@@ -76,21 +76,22 @@ describe('ZPassSDK', () => {
 
     describe('issueZPass', () => {
         it('should successfully issue a zPass', async () => {
+            const issuer = new Account({privateKey: TEST_PRIVATE_KEY}).address().to_string();
             const subject = TEST_ADDRESS;
+
+            const nationalityField = get_field_from_value("US");
             const data = {
-                dob: 1990,
-                nationality: "US",
-                expiry: 2030
+                issuer: issuer,
+                subject: subject,
+                dob: "1990u32",
+                nationality: nationalityField,
+                expiry: "2030u32"
             };
-            const nationalityField = get_field_from_value(data.nationality);
-            
+
             const signResult = await sdk.signCredential({
-                subject,
                 data,
                 hashType: HashAlgorithm.POSEIDON2
             });
-
-            const issuer = new Account({privateKey: TEST_PRIVATE_KEY}).address().to_string();
 
             const txId = await sdk.issueZPass({
                 programName: "verify_poseidon2_zpass.aleo",
@@ -108,21 +109,22 @@ describe('ZPassSDK', () => {
 
     describe('proveOnChain', () => {
         it('should successfully create and submit a proof transaction', async () => {
+            const issuer = new Account({privateKey: TEST_PRIVATE_KEY}).address().to_string();
             const subject = TEST_ADDRESS;
+
+            const nationalityField = get_field_from_value("US");
             const data = {
-                dob: 1990,
-                nationality: "US",
-                expiry: 2030
+                issuer: issuer,
+                subject: subject,
+                dob: "1990u32",
+                nationality: nationalityField,
+                expiry: "2030u32"
             };
-            const nationalityField = get_field_from_value(data.nationality);
-            
+
             const signResult = await sdk.signCredential({
-                subject,
                 data,
                 hashType: HashAlgorithm.POSEIDON2
             });
-
-            const issuer = new Account({privateKey: TEST_PRIVATE_KEY}).address().to_string();
 
             const result = await sdk.proveOnChain({
                 programName: "verify_poseidon2.aleo",
@@ -141,21 +143,22 @@ describe('ZPassSDK', () => {
 
     describe('proveOffChain', () => {
         it('should successfully generate an off-chain proof', async () => {
+            const issuer = new Account({privateKey: TEST_PRIVATE_KEY}).address().to_string();
             const subject = TEST_ADDRESS;
+
+            const nationalityField = get_field_from_value("US");
             const data = {
-                dob: 1990,
-                nationality: "US",
-                expiry: 2030
+                issuer: issuer,
+                subject: subject,
+                dob: "1990u32",
+                nationality: nationalityField,
+                expiry: "2030u32"
             };
-            const nationalityField = get_field_from_value(data.nationality);
-            
+
             const signResult = await sdk.signCredential({
-                subject,
                 data,
                 hashType: HashAlgorithm.POSEIDON2
             });
-
-            const issuer = new Account({privateKey: TEST_PRIVATE_KEY}).address().to_string();
             const offlineQueryString = `{"state_paths":{},"state_root": "sr1rjxjfdxtr02fl5fgut2z06lpg02tya0tfj2pae6h4p2usdg8gqxqy22lhf"}`;
             const offlineQuery = OfflineQuery.fromString(offlineQueryString);
 
@@ -192,21 +195,22 @@ describe('ZPassSDK', () => {
 
     describe('verifyOffChain with inputs', () => {
         it('should successfully verify an off-chain proof using inputs', async () => {
-            const subject = new Account().address().to_string();
+            const issuer = new Account({privateKey: TEST_PRIVATE_KEY}).address().to_string();
+            const subject = TEST_ADDRESS;
+
+            const nationalityField = get_field_from_value("US");
             const data = {
-                dob: 1234,
-                nationality: "RANDOM", 
-                expiry: 5678
+                issuer: issuer,
+                subject: subject,
+                dob: "1990u32",
+                nationality: nationalityField,
+                expiry: "2030u32"
             };
-            const nationalityField = get_field_from_value(data.nationality);
-            
+
             const signResult = await sdk.signCredential({
-                subject,
                 data,
                 hashType: HashAlgorithm.POSEIDON2
             });
-
-            const issuer = new Account({privateKey: TEST_PRIVATE_KEY}).address().to_string();
 
             const verificationResult = await ZPassSDK.verifyOffChain({
                 execution: ctx.execution!,
