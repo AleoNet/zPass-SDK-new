@@ -31,36 +31,101 @@ pub fn convert_data_to_struct(data: JsonValue, logger: &dyn Logger) -> IndexMap<
     for (key, value) in data.as_object().unwrap().clone().into_iter() {
         match value {
             JsonValue::String(s) => {
-                let plaintext = if s.starts_with("aleo1") {
-                    // Handle Aleo address type
-                    let address = Address::<CurrentNetwork>::from_str(&s)
-                        .unwrap_or_else(|e| panic!("Failed to parse Aleo address: {}", e));
-                    Plaintext::from(Literal::Address(address))
-                } else if s.ends_with("field") {
-                    // Handle field type: "123field"
-                    let num_str = s.trim_end_matches("field");
-                    let field = string_to_field(Some(num_str.to_string()))
-                        .unwrap_or_else(|e| panic!("Failed to parse field: {}", e));
-                    Plaintext::from(Literal::Field(field))
-                } else if s.ends_with("u32") {
-                    // Handle u32 type: "123u32"
-                    let num_str = s.trim_end_matches("u32");
-                    let number = num_str.parse::<u32>()
-                        .unwrap_or_else(|e| panic!("Failed to parse u32: {}", e));
-                    Plaintext::from(Literal::U32(U32::<CurrentNetwork>::new(number)))
-                } else if s.ends_with("bool") {
-                    // Handle boolean type: "truebool" or "falsebool"
-                    let bool_str = s.trim_end_matches("bool");
-                    let b = bool_str.parse::<bool>()
-                        .unwrap_or_else(|e| panic!("Failed to parse boolean: {}", e));
-                    Plaintext::from(Literal::Boolean(Boolean::<CurrentNetwork>::new(b)))
-                } else {
-                    // Default to Field type for unrecognized suffixes
-                    let field = string_to_field(Some(s)).unwrap();
-                    Plaintext::from(Literal::Field(field))
+                let plaintext = match s {
+                    s if s.starts_with("aleo1") => {
+                        let address = Address::<CurrentNetwork>::from_str(&s)
+                            .unwrap_or_else(|e| panic!("Failed to parse Aleo address: {}", e));
+                        Plaintext::from(Literal::Address(address))
+                    },
+                    s if s.ends_with("field") => {
+                        let num_str = s.trim_end_matches("field");
+                        let field = string_to_field(Some(num_str.to_string()))
+                            .unwrap_or_else(|e| panic!("Failed to parse field: {}", e));
+                        Plaintext::from(Literal::Field(field))
+                    },
+                    s if s.ends_with("u8") => {
+                        let num_str = s.trim_end_matches("u8");
+                        let number = num_str.parse::<u8>()
+                            .unwrap_or_else(|e| panic!("Failed to parse u8: {}", e));
+                        Plaintext::from(Literal::U8(U8::<CurrentNetwork>::new(number)))
+                    },
+                    s if s.ends_with("u16") => {
+                        let num_str = s.trim_end_matches("u16");
+                        let number = num_str.parse::<u16>()
+                            .unwrap_or_else(|e| panic!("Failed to parse u16: {}", e));
+                        Plaintext::from(Literal::U16(U16::<CurrentNetwork>::new(number)))
+                    },
+                    s if s.ends_with("u32") => {
+                        let num_str = s.trim_end_matches("u32");
+                        let number = num_str.parse::<u32>()
+                            .unwrap_or_else(|e| panic!("Failed to parse u32: {}", e));
+                        Plaintext::from(Literal::U32(U32::<CurrentNetwork>::new(number)))
+                    },
+                    s if s.ends_with("u64") => {
+                        let num_str = s.trim_end_matches("u64");
+                        let number = num_str.parse::<u64>()
+                            .unwrap_or_else(|e| panic!("Failed to parse u64: {}", e));
+                        Plaintext::from(Literal::U64(U64::<CurrentNetwork>::new(number)))
+                    },
+                    s if s.ends_with("u128") => {
+                        let num_str = s.trim_end_matches("u128");
+                        let number = num_str.parse::<u128>()
+                            .unwrap_or_else(|e| panic!("Failed to parse u128: {}", e));
+                        Plaintext::from(Literal::U128(U128::<CurrentNetwork>::new(number)))
+                    },
+                    s if s.ends_with("i8") => {
+                        let num_str = s.trim_end_matches("i8");
+                        let number = num_str.parse::<i8>()
+                            .unwrap_or_else(|e| panic!("Failed to parse i8: {}", e));
+                        Plaintext::from(Literal::I8(I8::<CurrentNetwork>::new(number)))
+                    },
+                    s if s.ends_with("i16") => {
+                        let num_str = s.trim_end_matches("i16");
+                        let number = num_str.parse::<i16>()
+                            .unwrap_or_else(|e| panic!("Failed to parse i16: {}", e));
+                        Plaintext::from(Literal::I16(I16::<CurrentNetwork>::new(number)))
+                    },
+                    s if s.ends_with("i32") => {
+                        let num_str = s.trim_end_matches("i32");
+                        let number = num_str.parse::<i32>()
+                            .unwrap_or_else(|e| panic!("Failed to parse i32: {}", e));
+                        Plaintext::from(Literal::I32(I32::<CurrentNetwork>::new(number)))
+                    },
+                    s if s.ends_with("i64") => {
+                        let num_str = s.trim_end_matches("i64");
+                        let number = num_str.parse::<i64>()
+                            .unwrap_or_else(|e| panic!("Failed to parse i64: {}", e));
+                        Plaintext::from(Literal::I64(I64::<CurrentNetwork>::new(number)))
+                    },
+                    s if s.ends_with("i128") => {
+                        let num_str = s.trim_end_matches("i128");
+                        let number = num_str.parse::<i128>()
+                            .unwrap_or_else(|e| panic!("Failed to parse i128: {}", e));
+                        Plaintext::from(Literal::I128(I128::<CurrentNetwork>::new(number)))
+                    },
+                    s if s.ends_with("bool") => {
+                        let bool_str = s.trim_end_matches("bool");
+                        let b = bool_str.parse::<bool>()
+                            .unwrap_or_else(|e| panic!("Failed to parse boolean: {}", e));
+                        Plaintext::from(Literal::Boolean(Boolean::<CurrentNetwork>::new(b)))
+                    },
+                    s if s.ends_with("group") => {
+                        let (_, group) = Group::<CurrentNetwork>::parse(&s)
+                            .unwrap_or_else(|e| panic!("Failed to parse group: {}", e));
+                        Plaintext::from(Literal::Group(group))
+                    },
+                    s if s.ends_with("scalar") => {
+                        let (_, scalar) = Scalar::<CurrentNetwork>::parse(&s)
+                            .unwrap_or_else(|e| panic!("Failed to parse scalar: {}", e));
+                        Plaintext::from(Literal::Scalar(scalar))
+                    },
+                    s => {
+                        let field = string_to_field(Some(s)).unwrap();
+                        Plaintext::from(Literal::Field(field))
+                    }
                 };
                 members.insert(key, plaintext);
-            }
+            },
             _ => {
                 logger.log(&format!("Unsupported data type: {:?}", value));
             }

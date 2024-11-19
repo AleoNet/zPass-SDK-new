@@ -36,7 +36,7 @@ describe('ZPassSDK', () => {
             const data = { 
                 issuer: issuer,
                 subject: subject,
-                number: "12398field",
+                number: "20000101u128",
             };
             
             const result = await sdk.signCredential({

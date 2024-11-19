@@ -15,7 +15,7 @@ use std::str::FromStr;
 
 // External crate imports
 use snarkvm_console::{
-    prelude::Parser, account::{PrivateKey, Signature}, network::{environment::ToFields, MainnetV0 as CurrentNetwork, Network}, prelude::Zero, program::{Identifier, Literal, Plaintext, Value}, types::{Address, Field, Scalar, U32, Boolean}
+    prelude::Parser, account::{PrivateKey, Signature}, network::{environment::ToFields, MainnetV0 as CurrentNetwork, Network}, prelude::Zero, program::{Identifier, Literal, Plaintext, Value}, types::*
 };
 use snarkvm_utilities::{TestRng, ToBits, Uniform};
 
@@ -107,7 +107,7 @@ mod tests {
         let private_key = "APrivateKey1zkp5LqRmm7535XfiX77VPQEgsS2Dj1B2DvH4QNP1UYrHEoR".to_string();
         let issuer = "aleo1ekyuzclmcw3aj7qncsxxaapxem82mgrd8zadgrrvl5k705zx6q9s7usuqy".to_string();
         let subject = "aleo14w44zfrehup9g894j7tgeyz5gsjuxn0nfn09vd2fvpznrg85rs8skywkte".to_string();
-        let dob = "20000101u32".to_string();
+        let dob = "20000101scalar".to_string();
         (private_key, issuer, subject, dob)
     }
 
