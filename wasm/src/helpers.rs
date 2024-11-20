@@ -103,11 +103,10 @@ pub fn convert_data_to_struct(data: JsonValue, logger: &dyn Logger) -> IndexMap<
                             .unwrap_or_else(|e| panic!("Failed to parse i128: {}", e));
                         Plaintext::from(Literal::I128(I128::<CurrentNetwork>::new(number)))
                     },
-                    s if s.ends_with("bool") => {
-                        let bool_str = s.trim_end_matches("bool");
-                        let b = bool_str.parse::<bool>()
+                    s if s == "true" || s == "false" => {
+                        let (_, boolean) = Boolean::<CurrentNetwork>::parse(&s)
                             .unwrap_or_else(|e| panic!("Failed to parse boolean: {}", e));
-                        Plaintext::from(Literal::Boolean(Boolean::<CurrentNetwork>::new(b)))
+                        Plaintext::from(Literal::Boolean(boolean))
                     },
                     s if s.ends_with("group") => {
                         let (_, group) = Group::<CurrentNetwork>::parse(&s)
