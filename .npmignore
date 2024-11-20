@@ -4,7 +4,6 @@
 !README.md
 !LICENSE
 !wasm/pkg/**
-
 # Explicitly exclude test files
 tests/
 __tests__/

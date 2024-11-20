@@ -1,4 +1,6 @@
 import { defineConfig } from 'tsup'
+import fs from 'fs'
+import path from 'path'
 
 export default defineConfig({
   entry: ['src/index.ts'],
@@ -6,19 +8,23 @@ export default defineConfig({
   dts: true,
   clean: true,
   sourcemap: true,
-  // Copy WASM files to dist
+  target: 'esnext',
+  loader: {
+    '.wasm': 'copy'
+  },
   async onSuccess() {
-    const { copyFile, mkdir } = require('fs/promises')
-    const { join } = require('path')
+    const wasmDir = path.join(process.cwd(), 'wasm', 'pkg')
+    const distDir = path.join(process.cwd(), 'dist')
     
-    try {
-      await mkdir(join(__dirname, 'dist/wasm/pkg'), { recursive: true })
-      await copyFile(
-        join(__dirname, 'wasm/pkg/index_bg.wasm'),
-        join(__dirname, 'dist/wasm/pkg/index_bg.wasm')
-      )
-    } catch (err) {
-      console.error('Error copying WASM files:', err)
+    if (fs.existsSync(wasmDir)) {
+      const wasmFiles = fs.readdirSync(wasmDir).filter(file => file.endsWith('.wasm'))
+      
+      for (const file of wasmFiles) {
+        fs.copyFileSync(
+          path.join(wasmDir, file),
+          path.join(distDir, file)
+        )
+      }
     }
   }
 })

@@ -9,7 +9,7 @@ export interface SDKOptions {
 }
 
 export interface SignCredentialOptions {
-    data: { [key: string]: any };
+    data: { [key: string]: string };
     hashType: HashAlgorithm;
     privateKey?: string;
 }
@@ -35,13 +35,7 @@ export interface VerifyOffChainOptions {
     url?: string;
 }
 
-export interface GetRecordsOptions {
-    program: string;
-    functionName: string;
-    inputs: string[];
-}
-
-export interface BaseChainOptions {
+export interface ProveOnChainOptions {
     programName: string;
     functionName: string;
     privateFee: boolean;
@@ -49,7 +43,3 @@ export interface BaseChainOptions {
     fee: number;
     feeRecord?: string;
 }
-
-export interface IssueZPassOptions extends BaseChainOptions {}
-export interface ProveOnChainOptions extends BaseChainOptions {}
-export interface OnChainInteractOptions extends BaseChainOptions {}

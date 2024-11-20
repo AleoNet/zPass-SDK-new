@@ -23,9 +23,6 @@ import {
     VerifyOnChainOptions,
     ProveOffChainOptions,
     VerifyOffChainOptions,
-    GetRecordsOptions,
-    IssueZPassOptions,
-    OnChainInteractOptions,
 } from '../interfaces';
 import type { TransactionModel, Output } from '@provablehq/sdk/mainnet.js';
 
@@ -80,7 +77,7 @@ export class ZPassSDK {
         };
     }
 
-    public async issueZPass(options: IssueZPassOptions): Promise<string> {
+    public async issueZPass(options: ProveOnChainOptions): Promise<string> {
         return this.onChainInteract(options);
     }
 
@@ -130,7 +127,7 @@ export class ZPassSDK {
         });
 
         // Execute the function locally
-        let response = await this.programManager.run(
+        const response = await this.programManager.run(
           localProgram,
           functionName,
           inputs,
@@ -201,12 +198,12 @@ export class ZPassSDK {
         return res;
     }
 
-    public async getRecords(options: GetRecordsOptions) {
+    public async getRecords() {
         // Not implemented yet
         throw new SDKError("Not implemented yet");
     }
 
-    async onChainInteract(options: OnChainInteractOptions): Promise<string> {
+    async onChainInteract(options: ProveOnChainOptions): Promise<string> {
         const { programName, functionName, inputs, privateFee, fee, feeRecord } = options;
         const program = await this.programManager.networkClient.getProgram(programName);
         const cacheKey = `${programName}:${functionName}`;
