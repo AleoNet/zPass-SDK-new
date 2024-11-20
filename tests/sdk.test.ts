@@ -98,7 +98,7 @@ describe('ZPassSDK', () => {
                 functionName: "issue",
                 privateFee: false,
                 fee: 3000,
-                inputs: [signResult.signature, `{issuer: ${issuer}, subject: ${subject}, dob: ${data.dob}u32, nationality: ${nationalityField}, expiry: ${data.expiry}u32}`]
+                inputs: [signResult.signature, `{issuer: ${issuer}, subject: ${subject}, dob: ${data.dob}, nationality: ${nationalityField}, expiry: ${data.expiry}}`]
             });
             
             console.log("Transaction Id with zPass record:", txId);
@@ -131,7 +131,7 @@ describe('ZPassSDK', () => {
                 functionName: "verify",
                 privateFee: false,
                 fee: 3000,
-                inputs: [signResult.signature, `{issuer: ${issuer}, subject: ${subject}, dob: ${data.dob}u32, nationality: ${nationalityField}, expiry: ${data.expiry}u32}`]
+                inputs: [signResult.signature, `{issuer: ${issuer}, subject: ${subject}, dob: ${data.dob}, nationality: ${nationalityField}, expiry: ${data.expiry}}`]
             });
             
             console.log("Transaction Id:", result);
@@ -167,7 +167,7 @@ describe('ZPassSDK', () => {
                 functionName: "verify",
                 inputs: [
                     signResult.signature, 
-                    `{issuer: ${issuer}, subject: ${subject}, dob: ${data.dob}u32, nationality: ${nationalityField}, expiry: ${data.expiry}u32}`
+                    `{issuer: ${issuer}, subject: ${subject}, dob: ${data.dob}, nationality: ${nationalityField}, expiry: ${data.expiry}}`
                 ],
                 offlineQuery
             });
@@ -218,7 +218,7 @@ describe('ZPassSDK', () => {
                 functionName: "verify",
                 inputs: [
                     signResult.signature,
-                    `{issuer: ${issuer}, subject: ${subject}, dob: ${data.dob}u32, nationality: ${nationalityField}, expiry: ${data.expiry}u32}`
+                    `{issuer: ${issuer}, subject: ${subject}, dob: ${data.dob}, nationality: ${nationalityField}, expiry: ${data.expiry}}`
                 ],
             });
 
