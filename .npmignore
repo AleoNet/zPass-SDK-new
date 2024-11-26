@@ -4,6 +4,10 @@
 !README.md
 !LICENSE
 !wasm/pkg/**
+wasm/src/
+wasm/target/
+wasm/Cargo.toml
+wasm/Cargo.lock
 # Explicitly exclude test files
 tests/
 __tests__/

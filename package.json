@@ -11,16 +11,28 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.js"
+    },
+    "./wasm": {
+      "types": "./wasm/pkg/issuer.d.ts",
+      "import": "./wasm/pkg/issuer.js",
+      "require": "./wasm/pkg/issuer.js"
     }
   },
   "files": [
-    "dist",
-    "wasm/pkg"
+    "dist/",
+    "wasm/pkg/issuer_bg.wasm",
+    "wasm/pkg/issuer.js",
+    "wasm/pkg/issuer.d.ts",
+    "wasm/pkg/issuer_bg.js",
+    "wasm/pkg/issuer_bg.wasm.d.ts",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
-    "build": "npm run build:wasm && npm run build:ts",
+    "build": "npm run build:wasm && npm run build:ts && npm run postbuild",
     "build:wasm": "cd wasm && wasm-pack build --target bundler",
     "build:ts": "tsup src/index.ts --format esm,cjs --dts --outDir dist",
+    "postbuild": "cp wasm/pkg/issuer_bg.js dist/",
     "clean": "rm -rf dist wasm/pkg",
     "prepublishOnly": "npm run clean && npm run build && npm run lint",
     "dev": "tsup --watch",
@@ -63,7 +75,8 @@
   "homepage": "https://github.com/AleoNet/zPass-SDK-new#readme",
   "dependencies": {
     "@provablehq/sdk": "^0.7.0",
-    "core-js": "^3.38.1"
+    "core-js": "^3.38.1",
+    "issuer": "file:wasm/pkg"
   },
   "jest": {
     "verbose": true,
