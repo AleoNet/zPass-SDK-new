@@ -1,6 +1,6 @@
 {
   "name": "zpass-sdk",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "zPass is a fast, secure, and privacy-preserving digital identity solution",
   "type": "module",
   "main": "dist/index.js",
