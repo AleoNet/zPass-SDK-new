@@ -4,12 +4,12 @@
   "description": "zPass is a fast, secure, and privacy-preserving digital identity solution",
   "type": "module",
   "main": "dist/index.js",
-  "module": "dist/index.mjs",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
+      "import": "./dist/index.js",
       "require": "./dist/index.js"
     }
   },
@@ -20,7 +20,7 @@
   "scripts": {
     "build": "npm run build:wasm && npm run build:ts",
     "build:wasm": "cd wasm && wasm-pack build --target bundler",
-    "build:ts": "tsup src/index.ts --format esm,cjs --dts",
+    "build:ts": "tsup src/index.ts --format esm,cjs --dts --outDir dist",
     "clean": "rm -rf dist wasm/pkg",
     "prepublishOnly": "npm run clean && npm run build && npm run lint",
     "dev": "tsup --watch",
