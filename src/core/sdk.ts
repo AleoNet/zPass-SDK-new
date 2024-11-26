@@ -157,6 +157,7 @@ export class ZPassSDK {
         const networkClient = new AleoNetworkClient(baseUrl);
 
         const transaction = await networkClient.getTransaction(transactionId);
+        console.log("Transaction:", transaction);
         const hasExecution = transaction.type === "execute" ? true : false;
         const outputs = transaction.execution.transitions?.[0].outputs;
         return {
