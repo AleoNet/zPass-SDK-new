@@ -14,7 +14,7 @@ import {
     ViewKey,
     OfflineQuery,
 } from '@provablehq/sdk/mainnet.js';
-import * as wasm from '../../wasm/pkg/issuer';
+import * as wasm from 'zpass-credential-signer';
 import { SDKError } from '../errors';
 import { 
     SDKOptions, 

@@ -1,4 +1,4 @@
-import { HashAlgorithm } from '../../wasm/pkg/issuer';
+import { HashAlgorithm } from 'zpass-credential-signer';
 import { OfflineQuery } from '@provablehq/wasm';
 
 export { HashAlgorithm };

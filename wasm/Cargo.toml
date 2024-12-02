@@ -1,6 +1,6 @@
 [package]
-name = "issuer"
-version = "0.1.0"
+name = "zpass-credential-signer"
+version = "0.0.2"
 authors = ["zPass"]
 edition = "2021"
 license = "MIT"

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ZPassSDK, HashAlgorithm } from '../src/index';
-import { verify_signed_credential, get_field_from_value } from '../wasm/pkg/issuer';
+import { verify_signed_credential, get_field_from_value } from 'zpass-credential-signer';
 import { Account, OfflineQuery } from '@provablehq/sdk/mainnet.js';
 import { verify_poseidon2 } from './localPrograms/localPrograms';
 

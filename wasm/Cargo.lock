@@ -553,31 +553,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "issuer"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bincode",
- "console_error_panic_hook",
- "getrandom",
- "hex",
- "indexmap",
- "js-sys",
- "rand",
- "ring",
- "serde",
- "serde-wasm-bindgen",
- "serde_derive",
- "serde_json",
- "snarkvm-console",
- "snarkvm-utilities",
- "thiserror",
- "wasm-bindgen",
- "wasm-bindgen-test",
- "web-sys",
-]
-
-[[package]]
 name = "itertools"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1747,4 +1722,29 @@ dependencies = [
  "proc-macro2",
  "quote 1.0.33",
  "syn 2.0.37",
+]
+
+[[package]]
+name = "zpass-credential-signer"
+version = "0.0.2"
+dependencies = [
+ "anyhow",
+ "bincode",
+ "console_error_panic_hook",
+ "getrandom",
+ "hex",
+ "indexmap",
+ "js-sys",
+ "rand",
+ "ring",
+ "serde",
+ "serde-wasm-bindgen",
+ "serde_derive",
+ "serde_json",
+ "snarkvm-console",
+ "snarkvm-utilities",
+ "thiserror",
+ "wasm-bindgen",
+ "wasm-bindgen-test",
+ "web-sys",
 ]
