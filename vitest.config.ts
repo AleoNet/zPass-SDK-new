@@ -11,14 +11,6 @@ export default defineConfig({
       '**/dist/**',
       '**/cypress/**',
       '**/.{idea,git,cache,output,temp}/**'
-    ],
-    deps: {
-      inline: [/\.wasm/],
-    },
-    environment: 'node',
-    browser: {
-      enabled: true,
-      name: 'chrome'
-    }
+    ]
   },
 }) 

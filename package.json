@@ -60,7 +60,7 @@
   },
   "homepage": "https://github.com/AleoNet/zPass-SDK-new#readme",
   "dependencies": {
-    "@provablehq/sdk": "^0.7.0",
+    "@provablehq/sdk": "^0.7.1",
     "core-js": "^3.38.1",
     "zpass-credential-signer": "0.0.2"
   },

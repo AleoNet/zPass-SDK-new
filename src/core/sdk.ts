@@ -33,6 +33,7 @@ export class ZPassSDK {
     private programManager: ProgramManager;
     private keyProvider: AleoKeyProvider;
     private recordProvider: NetworkRecordProvider;
+    private networkClient: AleoNetworkClient;
     private lastProgram: string | null;
 
     constructor({ privateKey, host }: SDKOptions) {
@@ -46,9 +47,15 @@ export class ZPassSDK {
 
         try {
             const account = new Account({privateKey});
+            host = host ? host : 'https://api.explorer.provable.com/v1';
             this.programManager = new ProgramManager(host);
+            this.networkClient = new AleoNetworkClient(host, {
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
             this.keyProvider = new AleoKeyProvider();
-            this.recordProvider = new NetworkRecordProvider(account, this.programManager.networkClient);
+            this.recordProvider = new NetworkRecordProvider(account, this.networkClient);
             this.programManager.setAccount(account);
             this.programManager.setKeyProvider(this.keyProvider);
             this.programManager.setRecordProvider(this.recordProvider);
@@ -82,8 +89,17 @@ export class ZPassSDK {
     }
 
     public async getZPassRecord(transactionId: string): Promise<string> {
-        const tx = await this.programManager.networkClient.getTransaction(transactionId);
-        const record = <string>tx.execution?.transitions?.[0].outputs?.[0].value;
+        const tx = await this.networkClient.getTransaction(transactionId);
+        const outputs = tx.execution?.transitions?.[0].outputs;
+        if (!outputs) {
+            throw new SDKError("No outputs found in transaction");
+        }
+        
+        const recordOutput = outputs.find(output => output.type === 'record');
+        if (!recordOutput) {
+            throw new SDKError("No record found in transaction outputs");
+        }
+        const record = recordOutput.value;
 
         const recordCiphertext = <RecordCiphertext>RecordCiphertext.fromString(record);
         const recordPlaintext = <RecordPlaintext>recordCiphertext.decrypt(this.programManager.account?.viewKey() as ViewKey);
@@ -107,7 +123,7 @@ export class ZPassSDK {
         const cacheKey = `${program_id}:${functionName}`;
 
         // Get the program imports
-        const imports = await this.programManager.networkClient.getProgramImports(localProgram);
+        const imports = await this.networkClient.getProgramImports(localProgram);
 
         // Get the proving and verifying keys for the function
         if (this.lastProgram !== localProgram) {
@@ -154,7 +170,11 @@ export class ZPassSDK {
         const { transactionId, url } = options;
 
         const baseUrl = !url ? "https://api.explorer.provable.com/v1" : url;
-        const networkClient = new AleoNetworkClient(baseUrl);
+        const networkClient = new AleoNetworkClient(baseUrl, {
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
 
         const transaction = await networkClient.getTransaction(transactionId);
         console.log("Transaction:", transaction);
@@ -206,7 +226,7 @@ export class ZPassSDK {
 
     async onChainInteract(options: ProveOnChainOptions): Promise<string> {
         const { programName, functionName, inputs, privateFee, fee, feeRecord } = options;
-        const program = await this.programManager.networkClient.getProgram(programName);
+        const program = await this.networkClient.getProgram(programName);
         const cacheKey = `${programName}:${functionName}`;
 
         if (this.lastProgram !== program) {
@@ -237,7 +257,7 @@ export class ZPassSDK {
             verifyingKey: this.keyProvider.getKeys(cacheKey)[1],
         });
 
-        await this.programManager.networkClient.submitTransaction(transaction);
+        await this.networkClient.submitTransaction(transaction);
 
         return transaction.transactionId();
     }
