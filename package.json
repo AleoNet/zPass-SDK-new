@@ -62,6 +62,7 @@
   "dependencies": {
     "@provablehq/sdk": "^0.7.1",
     "@provablehq/wasm": "^0.7.2",
+    "comlink": "^4.4.2",
     "core-js": "^3.38.1",
     "zpass-credential-signer": "0.0.2"
   },

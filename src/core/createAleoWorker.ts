@@ -1,6 +1,6 @@
 import { wrap } from "comlink";
 
-let singletonWorker: any = null;
+let singletonWorker: ReturnType<typeof wrap>;
 
 interface CreateAleoWorkerOptions {
     url: string;
