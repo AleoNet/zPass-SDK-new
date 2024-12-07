@@ -13,6 +13,7 @@ import {
     RecordPlaintext,
     ViewKey,
     OfflineQuery,
+    createAleoWorker,
 } from '@provablehq/sdk/mainnet.js';
 import * as wasm from 'zpass-credential-signer';
 import { SDKError } from '../errors';
@@ -27,7 +28,7 @@ import {
 import type { TransactionModel, Output } from '@provablehq/sdk/mainnet.js';
 
 export type { TransactionModel, Output };
-export { OfflineQuery, Account };
+export { OfflineQuery, Account, createAleoWorker };
 
 export class ZPassSDK {
     private programManager: ProgramManager;
@@ -217,11 +218,6 @@ export class ZPassSDK {
             functionName
         );
         return res;
-    }
-
-    public async getRecords() {
-        // Not implemented yet
-        throw new SDKError("Not implemented yet");
     }
 
     async onChainInteract(options: ProveOnChainOptions): Promise<string> {
