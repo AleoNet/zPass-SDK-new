@@ -42,9 +42,9 @@ program verify_poseidon2_zpass.aleo {
     mapping issuance_count: field => u128;
 
     async transition issue(
-        sig: signature,
-        pri: PrivateCredential,
-        pub: PublicCredential,
+        private sig: signature,
+        private pri: PrivateCredential,
+        public pub: PublicCredential,
     ) -> (ZPass, Future) {
         // Construct the full credentials struct to be hashed and verified against the signature
         let credentials: FullCredentials = FullCredentials {
