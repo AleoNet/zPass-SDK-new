@@ -4,11 +4,13 @@ import aleoLogo from "./assets/aleo.svg";
 import "./App.css";
 import { verify_poseidon2_zpass } from "./consts/programs.js";
 import { AleoWorker } from "./workers/AleoWorker.js";
+import { ProgramManager } from "@provablehq/sdk/mainnet.js";
 
 const aleoWorker = AleoWorker();
 function App() {
   const [executing, setExecuting] = useState(false);
   const [txId, setTxId] = useState(null);
+  const [zPassRecord, setZPassRecord] = useState(null);
 
   async function initializeZPass() {
     await aleoWorker.initializeZPass({
@@ -48,6 +50,23 @@ function App() {
     alert(JSON.stringify(result));
   }
 
+  async function usageTest() {
+    if (!zPassRecord) {
+      alert("Please get a ZPass record first");
+      return;
+    }
+    const programManager = await new ProgramManager("http://localhost:3030");
+    const result = programManager.execute({
+      programName: "zpass_usage_test.aleo",
+      functionName: "verify_zpass",
+      fee: 100000,
+      privateFee: false,
+      inputs: [`"${zPassRecord}"`],
+      privateKey: "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH"
+    });
+    console.log("Broadcasted with tx id: ", result);
+  }
+
   return (
     <>
       <div>
@@ -61,15 +80,6 @@ function App() {
       <h1>Aleo + React</h1>
       <div className="card">
         <p>
-          <input
-            type="text"
-            placeholder="Enter transaction ID"
-            value={txId || ""}
-            onChange={(e) => setTxId(e.target.value)}
-            className="transaction-input"
-          />
-        </p>
-        <p>
           <button onClick={initializeZPass}>
             {"Initialize ZPass"}
           </button>
@@ -80,8 +90,31 @@ function App() {
           </button>
         </p>
         <p>
+          <input
+            type="text"
+            placeholder="Enter transaction ID"
+            value={txId || ""}
+            onChange={(e) => setTxId(e.target.value)}
+            className="transaction-input"
+          />
+        </p>
+        <p>
           <button onClick={getZPassFromTxId}>
             {"Get ZPass from txid"}
+          </button>
+        </p>
+        <p>
+          <input
+            type="text"
+            placeholder="Enter ZPass Record"
+            value={txId || ""}
+            onChange={(e) => setZPassRecord(e.target.value)}
+            className="transaction-input"
+          />
+        </p>
+        <p>
+          <button onClick={usageTest}>
+            {"Test ZPass usage"}
           </button>
         </p>
         <p>
