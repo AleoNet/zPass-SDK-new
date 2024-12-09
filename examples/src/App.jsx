@@ -55,14 +55,11 @@ function App() {
       alert("Please get a ZPass record first");
       return;
     }
-    const programManager = await new ProgramManager("http://localhost:3030");
-    const result = programManager.execute({
+    const result = await aleoWorker.testZPassUsage({
       programName: "zpass_usage_test.aleo",
       functionName: "verify_zpass",
       fee: 100000,
-      privateFee: false,
       inputs: [`"${zPassRecord}"`],
-      privateKey: "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH"
     });
     console.log("Broadcasted with tx id: ", result);
   }

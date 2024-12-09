@@ -52,5 +52,16 @@ async function getZPass(transactionId) {
   return zpass.getZPassRecord(transactionId);
 }
 
-const workerMethods = { testZPass, getZPass, initializeZPass };
+async function testZPassUsage({programName, functionName, inputs, fee}) {
+  const tx_id = await zpass.issueZPass({
+    programName,
+    functionName,
+    inputs,
+    fee
+  });
+
+  return tx_id;
+}
+
+const workerMethods = { testZPassUsage, getZPass, initializeZPass };
 expose(workerMethods);
