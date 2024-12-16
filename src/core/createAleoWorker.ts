@@ -4,7 +4,7 @@ let singletonWorker: ReturnType<typeof wrap>;
 
 interface CreateAleoWorkerOptions {
     url: string;
-    baseUrl: string;
+    baseUrl?: string;
 }
 
 const createAleoWorker = ({url, baseUrl}: CreateAleoWorkerOptions) => {

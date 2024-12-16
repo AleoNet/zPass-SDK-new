@@ -13,7 +13,7 @@ import {
     RecordPlaintext,
     ViewKey,
     OfflineQuery,
-    createAleoWorker,
+    initThreadPool
 } from '@provablehq/sdk/mainnet.js';
 import * as wasm from 'zpass-credential-signer';
 import { SDKError } from '../errors';
@@ -28,7 +28,7 @@ import {
 import type { TransactionModel, Output } from '@provablehq/sdk/mainnet.js';
 
 export type { TransactionModel, Output };
-export { OfflineQuery, Account, createAleoWorker };
+export { OfflineQuery, Account, initThreadPool };
 
 export class ZPassSDK {
     private programManager: ProgramManager;
