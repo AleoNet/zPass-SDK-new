@@ -26,3 +26,5 @@ package-lock.json
 # Wasm build output
 wasm/target/
 target/
+
+*.tgz

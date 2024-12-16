@@ -1,37 +1,39 @@
 # zPass SDK
 
-## Running Tests
+## Testing with Example 
 
 1. Clone this repository
-2. Install dependencies:
+2. cd into examples/
+3. Install dependencies:
    ```bash
    npm install
    ```
-3. Set up local devnet:
+4. Set up local devnet:
    - Clone [snarkOS](https://github.com/AleoNet/snarkOS)
    - Start local devnet in mainnet mode:
      ```bash
      ./devnet
      ```
    - Follow instructions and select `mainnet` when prompted
-4. Deploy each program to local devnet:
+5. Deploy `verify_poseidon2_zpass` program to local devnet:
    ```bash
-   cd programs/<PROGRAM>
+   cd programs/verify_poseidon2_zpass
    leo deploy # Uses .env.example with validator 0's private key
    ```
    Note: The validator 0's private key in .env.example has test tokens for local devnet
-5. Run tests:
+6. Start the example:
    ```bash
    cd ..
-   npm run test
+   npm run dev
    ```
-   Note: Tests may take several minutes to complete
+7. Open the example in your browser and follow the instructions
+8. Pull up the console and see the logs
 
 ## Roadmap
 
 - [ ] Add records finder
 - [x] Add mainnet support
 - [ ] Optimise program execution
-- [ ] Web Worker integration  
+- [x] Web Worker integration  
 - [ ] Add universal wallet adapter support
 - [ ] Documentation and setup guide
