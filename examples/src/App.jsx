@@ -104,7 +104,7 @@ function App() {
           <input
             type="text"
             placeholder="Enter ZPass Record"
-            value={txId || ""}
+            value={zPassRecord || ""}
             onChange={(e) => setZPassRecord(e.target.value)}
             className="transaction-input"
           />

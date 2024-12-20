@@ -35,7 +35,7 @@ export interface VerifyOffChainOptions {
     url?: string;
 }
 
-export interface ProveOnChainOptions {
+export interface OnChainOptions {
     programName: string;
     functionName: string;
     privateFee: boolean;

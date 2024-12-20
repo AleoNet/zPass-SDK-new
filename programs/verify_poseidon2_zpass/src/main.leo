@@ -49,7 +49,7 @@ program verify_poseidon2_zpass.aleo {
         // Construct the full credentials struct to be hashed and verified against the signature
         let credentials: FullCredentials = FullCredentials {
             issuer: pri.issuer,
-            subject: pri.subject,
+            subject: self.caller, // The caller must be the subject of the ZPass
             dob: pri.dob,
             nationality: pri.nationality,
             expiry: pri.expiry,
@@ -60,11 +60,11 @@ program verify_poseidon2_zpass.aleo {
         assert_eq(signature::verify(sig, pri.issuer, Poseidon2::hash_to_field(credentials)), true);
 
         // Compute commitment to prevent double issuance
-        let commit: group = BHP256::commit_to_group(pri.subject, pub.salt);
+        let commit: group = BHP256::commit_to_group(self.caller, pub.salt);
 
         // Return the ZPass record and pass the commitment to store in the mapping
         return (ZPass {
-            owner: pri.issuer,
+            owner: self.caller,
             issuer: pri.issuer,
             dob: pri.dob,
             nationality: pri.nationality,

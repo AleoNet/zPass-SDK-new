@@ -19,11 +19,11 @@ import * as wasm from 'zpass-credential-signer';
 import { SDKError } from '../errors';
 import { 
     SDKOptions, 
-    SignCredentialOptions, 
-    ProveOnChainOptions, 
+    SignCredentialOptions,  
     VerifyOnChainOptions,
     ProveOffChainOptions,
     VerifyOffChainOptions,
+    OnChainOptions,
 } from '../interfaces';
 import type { TransactionModel, Output } from '@provablehq/sdk/mainnet.js';
 
@@ -85,7 +85,7 @@ export class ZPassSDK {
         };
     }
 
-    public async issueZPass(options: ProveOnChainOptions): Promise<string> {
+    public async issueZPass(options: OnChainOptions): Promise<string> {
         return this.onChainInteract(options);
     }
 
@@ -108,7 +108,7 @@ export class ZPassSDK {
         return recordPlaintext.toString();
     }
 
-    public async proveOnChain(options: ProveOnChainOptions): Promise<string> {
+    public async proveOnChain(options: OnChainOptions): Promise<string> {
         return this.onChainInteract(options);
     }
 
@@ -220,7 +220,7 @@ export class ZPassSDK {
         return res;
     }
 
-    async onChainInteract(options: ProveOnChainOptions): Promise<string> {
+    async onChainInteract(options: OnChainOptions): Promise<string> {
         const { programName, functionName, inputs, privateFee, fee, feeRecord } = options;
         const program = await this.networkClient.getProgram(programName);
         const cacheKey = `${programName}:${functionName}`;
