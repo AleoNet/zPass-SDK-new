@@ -1,12 +1,12 @@
-// The 'verify_poseidon2_zpass' program.
-program verify_poseidon2_zpass.aleo {
+// The 'zpass_hiding' program.
+program zpass_hiding.aleo {
     // The ZPass record
     record ZPass {
         owner: address,
-        issuer: address,
-        dob: u32,
-        nationality: field,
-        expiry: u32,
+        issuer: group,
+        dob: group,
+        nationality: group,
+        expiry: group,
         salt: scalar
     }
 
@@ -66,10 +66,10 @@ program verify_poseidon2_zpass.aleo {
         // Return the ZPass record and pass the commitment to store in the mapping
         return (ZPass {
             owner: self.caller,
-            issuer: pri.issuer,
-            dob: pri.dob,
-            nationality: pri.nationality,
-            expiry: pri.expiry,
+            issuer: BHP256::commit_to_group(pri.issuer, pub.salt),
+            dob: BHP256::commit_to_group(pri.dob, pub.salt),
+            nationality: BHP256::commit_to_group(pri.nationality, pub.salt),
+            expiry: BHP256::commit_to_group(pri.expiry, pub.salt),
             salt: pub.salt
         }, issue_finalize(commit));
     }
@@ -84,5 +84,18 @@ program verify_poseidon2_zpass.aleo {
         issued.set(commit, true);
         // Increment the issuance count
         issuance_count.set(0field, issuance_count.get_or_use(0field, 0u128) + 1u128);
+    }
+
+    // Sample transition to check if the dob is more than 18 years old
+    transition more_than_18(
+        dob: u32,
+        salt: scalar,
+        dob_commit: group,
+        dob_check: u32
+    ) {
+        // Ensure knowledge of the dob commitment
+        assert_eq(dob_commit, BHP256::commit_to_group(dob, salt));
+        // Ensure the dob is more than 18 years old
+        assert_eq(dob > dob_check, true);
     }
 }

@@ -1,5 +1,5 @@
-// The 'verify_poseidon2_zpass' program.
-program verify_poseidon2_zpass.aleo {
+// The 'zpass_invalidate' program.
+program zpass_invalidate.aleo {
     // The ZPass record
     record ZPass {
         owner: address,
@@ -37,6 +37,9 @@ program verify_poseidon2_zpass.aleo {
 
     // The mapping of issued commitments
     mapping issued: group => bool;
+
+    // The mapping of invalidated commitments
+    mapping invalidated: group => bool;
 
     // The count of issued ZPasses
     // Using key of 0field as global key
@@ -84,5 +87,54 @@ program verify_poseidon2_zpass.aleo {
         issued.set(commit, true);
         // Increment the issuance count
         issuance_count.set(0field, issuance_count.get_or_use(0field, 0u128) + 1u128);
+    }
+
+    async transition invalidate(
+        private pri: PrivateCredential,
+        public pub: PublicCredential,
+    ) -> Future {
+        let credentials: FullCredentials = FullCredentials {
+            issuer: pri.issuer,
+            subject: pri.subject,
+            dob: pri.dob,
+            nationality: pri.nationality,
+            expiry: pri.expiry,
+            salt: pub.salt,
+        };
+
+        let commit: group = BHP256::commit_to_group(credentials, pub.salt);
+
+        return invalidate_finalize(commit);
+    }
+
+    async function invalidate_finalize(
+        public commit: group
+    ) {
+        // Store the commitment in the mapping
+        invalidated.set(commit, true);
+    }
+
+    async transition is_invalid(
+        private pri: PrivateCredential,
+        public pub: PublicCredential,
+    ) -> Future {
+        let credentials: FullCredentials = FullCredentials {
+            issuer: pri.issuer,
+            subject: pri.subject,
+            dob: pri.dob,
+            nationality: pri.nationality,
+            expiry: pri.expiry,
+            salt: pub.salt,
+        };
+
+        let commit: group = BHP256::commit_to_group(credentials, pub.salt);
+
+        return is_invalid_finalize(commit);
+    }
+
+    async function is_invalid_finalize(
+        public commit: group
+    ) {
+        assert_eq(invalidated.get_or_use(commit, false), false);
     }
 }
