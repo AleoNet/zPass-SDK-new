@@ -10,8 +10,8 @@ program verify_poseidon2_zpass.aleo {
         salt: scalar
     }
 
-    // The private credential struct
-    struct PrivateCredential {
+    // The private credentials struct
+    struct PrivateCredentials {
         issuer: address,
         subject: address,
         dob: u32,
@@ -19,9 +19,9 @@ program verify_poseidon2_zpass.aleo {
         expiry: u32
     }
 
-    // The public credential struct
+    // The public credentials struct
     // This is the public information that is shared publicly onchain
-    struct PublicCredential {
+    struct PublicCredentials {
         salt: scalar
     }
 
@@ -44,8 +44,8 @@ program verify_poseidon2_zpass.aleo {
 
     async transition issue(
         private sig: signature,
-        private pri: PrivateCredential,
-        public pub: PublicCredential,
+        private pri: PrivateCredentials,
+        public pub: PublicCredentials,
     ) -> (ZPass, Future) {
         // Construct the full credentials struct to be hashed and verified against the signature
         let credentials: FullCredentials = FullCredentials {

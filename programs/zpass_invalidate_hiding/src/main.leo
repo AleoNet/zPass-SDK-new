@@ -12,6 +12,7 @@ program zpass_invalidate_hiding.aleo {
 
     struct InvalidateZPass {
         issuer: group,
+        subject: address,
         dob: group,
         nationality: group,
         expiry: group,
@@ -99,18 +100,18 @@ program zpass_invalidate_hiding.aleo {
 
     // Must know the details of the ZPass to invalidate it
     async transition invalidate(
-        private pri: PrivateCredential,
-        public pub: PublicCredential,
+        zpass: ZPass
     ) -> Future {
         let credentials: InvalidateZPass = InvalidateZPass {
-            issuer: BHP256::commit_to_group(pri.issuer, pub.salt),
-            dob: BHP256::commit_to_group(pri.dob, pub.salt),
-            nationality: BHP256::commit_to_group(pri.nationality, pub.salt),
-            expiry: BHP256::commit_to_group(pri.expiry, pub.salt),
-            salt: pub.salt
+            issuer: zpass.issuer,
+            subject: zpass.owner,
+            dob: zpass.dob,
+            nationality: zpass.nationality,
+            expiry: zpass.expiry,
+            salt: zpass.salt
         };
 
-        let commit: group = BHP256::commit_to_group(credentials, pub.salt);
+        let commit: group = BHP256::commit_to_group(credentials, zpass.salt);
 
         return invalidate_finalize(commit);
     }
@@ -123,21 +124,9 @@ program zpass_invalidate_hiding.aleo {
     }
 
     async transition is_invalid(
-        issuer: group,
-        dob: group,
-        nationality: group,
-        expiry: group,
-        salt: scalar
+        credentials: InvalidateZPass
     ) -> Future {
-        let credentials: InvalidateZPass = InvalidateZPass {
-            issuer: issuer,
-            dob: dob,
-            nationality: nationality,
-            expiry: expiry,
-            salt: salt
-        };
-
-        let commit: group = BHP256::commit_to_group(credentials, salt);
+        let commit: group = BHP256::commit_to_group(credentials, credentials.salt);
 
         return is_invalid_finalize(commit);
     }
@@ -148,15 +137,15 @@ program zpass_invalidate_hiding.aleo {
         assert_eq(invalidated.get_or_use(commit, false), false);
     }
 
-    // Sample transition to check if the dob is more than 18 years old
+    // Sample transition to check if the dob is more than certain age
     transition more_than_18(
-        expiry: u32,
+        dob: u32,
         dob_check: u32,
         zpass: ZPass
     ) {
         // Ensure knowledge of the dob commitment
-        assert_eq(zpass.expiry, BHP256::commit_to_group(expiry, zpass.salt));
-        // Ensure the dob is more than 18 years old
-        assert_eq(expiry > dob_check, true);
+        assert_eq(zpass.dob, BHP256::commit_to_group(dob, zpass.salt));
+        // Ensure the dob is more than certain age
+        assert_eq(dob > dob_check, true);
     }
 }

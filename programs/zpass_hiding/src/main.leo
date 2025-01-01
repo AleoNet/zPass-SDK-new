@@ -86,16 +86,15 @@ program zpass_hiding.aleo {
         issuance_count.set(0field, issuance_count.get_or_use(0field, 0u128) + 1u128);
     }
 
-    // Sample transition to check if the dob is more than 18 years old
+    // Sample transition to check if the dob is more than certain age
     transition more_than_18(
         dob: u32,
-        salt: scalar,
-        dob_commit: group,
-        dob_check: u32
+        dob_check: u32,
+        zpass: ZPass
     ) {
         // Ensure knowledge of the dob commitment
-        assert_eq(dob_commit, BHP256::commit_to_group(dob, salt));
-        // Ensure the dob is more than 18 years old
+        assert_eq(zpass.dob, BHP256::commit_to_group(dob, zpass.salt));
+        // Ensure the dob is more than certain age
         assert_eq(dob > dob_check, true);
     }
 }

@@ -10,8 +10,8 @@ program zpass_invalidate.aleo {
         salt: scalar
     }
 
-    // The private credential struct
-    struct PrivateCredential {
+    // The private credentials struct
+    struct PrivateCredentials {
         issuer: address,
         subject: address,
         dob: u32,
@@ -19,9 +19,9 @@ program zpass_invalidate.aleo {
         expiry: u32
     }
 
-    // The public credential struct
+    // The public credentials struct
     // This is the public information that is shared publicly onchain
-    struct PublicCredential {
+    struct PublicCredentials {
         salt: scalar
     }
 
@@ -47,8 +47,8 @@ program zpass_invalidate.aleo {
 
     async transition issue(
         private sig: signature,
-        private pri: PrivateCredential,
-        public pub: PublicCredential,
+        private pri: PrivateCredentials,
+        public pub: PublicCredentials,
     ) -> (ZPass, Future) {
         // Construct the full credentials struct to be hashed and verified against the signature
         let credentials: FullCredentials = FullCredentials {
@@ -90,19 +90,18 @@ program zpass_invalidate.aleo {
     }
 
     async transition invalidate(
-        private pri: PrivateCredential,
-        public pub: PublicCredential,
+        zpass: ZPass
     ) -> Future {
         let credentials: FullCredentials = FullCredentials {
-            issuer: pri.issuer,
-            subject: pri.subject,
-            dob: pri.dob,
-            nationality: pri.nationality,
-            expiry: pri.expiry,
-            salt: pub.salt,
+            issuer: zpass.issuer,
+            subject: zpass.owner,
+            dob: zpass.dob,
+            nationality: zpass.nationality,
+            expiry: zpass.expiry,
+            salt: zpass.salt
         };
 
-        let commit: group = BHP256::commit_to_group(credentials, pub.salt);
+        let commit: group = BHP256::commit_to_group(credentials, zpass.salt);
 
         return invalidate_finalize(commit);
     }
@@ -115,19 +114,9 @@ program zpass_invalidate.aleo {
     }
 
     async transition is_invalid(
-        private pri: PrivateCredential,
-        public pub: PublicCredential,
+        credentials: FullCredentials
     ) -> Future {
-        let credentials: FullCredentials = FullCredentials {
-            issuer: pri.issuer,
-            subject: pri.subject,
-            dob: pri.dob,
-            nationality: pri.nationality,
-            expiry: pri.expiry,
-            salt: pub.salt,
-        };
-
-        let commit: group = BHP256::commit_to_group(credentials, pub.salt);
+        let commit: group = BHP256::commit_to_group(credentials, credentials.salt);
 
         return is_invalid_finalize(commit);
     }

@@ -10,10 +10,19 @@ program verify_poseidon2.aleo {
 
     transition verify(
         sig: signature,
-        msg: Credentials,
-    ) -> public bool {
-        let res: bool = signature::verify(sig, msg.issuer, Poseidon2::hash_to_field(msg));
+        public issuer: address,
+        dob: u32,
+        nationality: field,
+        expiry: u32
+    ) {
+        let creds: Credentials = Credentials {
+            issuer: issuer,
+            subject: self.caller,
+            dob: dob,
+            nationality: nationality,
+            expiry: expiry
+        };
+        let res: bool = signature::verify(sig, creds.issuer, Poseidon2::hash_to_field(creds));
         assert_eq(res, true);
-        return res;
     }
 }
