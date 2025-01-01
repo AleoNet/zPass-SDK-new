@@ -2,5 +2,5 @@
 name = "verify_poseidon2_zpass.aleo"
 location = "local"
 path = "/Users/zklim/Aleo/zpass-sdk-new/programs/zpass_usage_test/../verify_poseidon2_zpass"
-checksum = "14dceba0b41bcdfdf06f996ef7c03680c76608febea5de2fa1ba83d402cd1413"
+checksum = "7e173970e585ebcf2f43077e8d895f18d19ae56946c57e18ba6afee688642c31"
 dependencies = []
