@@ -1,6 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
 import { ZPassSDK, HashAlgorithm } from '../src/index';
-import { verify_signed_credential, get_field_from_value } from 'zpass-credential-signer';
+import { verify_signed_credential, get_field_from_value, Network } from 'zpass-credential-signer';
 import { Account, OfflineQuery } from '@provablehq/sdk/mainnet.js';
 import { verify_poseidon2 } from './localPrograms/localPrograms';
 
@@ -25,7 +24,8 @@ describe('ZPassSDK', () => {
     beforeEach(() => {
         sdk = new ZPassSDK({
             privateKey: TEST_PRIVATE_KEY,
-            host: TEST_HOST
+            host: TEST_HOST,
+            network: 'testnet'
         });
     });
 
@@ -64,12 +64,12 @@ describe('ZPassSDK', () => {
                 hashType: HashAlgorithm.POSEIDON2
             });
 
-            const verified = await verify_signed_credential(result.signature, issuer, result.hash);
+            const verified = await verify_signed_credential(result.signature, issuer, result.hash, Network.Testnet);
             expect(verified).toBe(true);
         });
 
         it('should throw error if private key is not available', () => {
-            expect(() => new ZPassSDK({privateKey: 'invalid_private_key'}))
+            expect(() => new ZPassSDK({privateKey: 'invalid_private_key', network: 'testnet'}))
                 .toThrow('Invalid private key format. Private key must start with "APrivateKey1"');
         });
     });
@@ -79,7 +79,7 @@ describe('ZPassSDK', () => {
             const issuer = new Account({privateKey: TEST_PRIVATE_KEY}).address().to_string();
             const subject = TEST_ADDRESS;
 
-            const nationalityField = get_field_from_value("US");
+            const nationalityField = get_field_from_value("US", Network.Testnet);
             const data = {
                 issuer: issuer,
                 subject: subject,
@@ -112,7 +112,7 @@ describe('ZPassSDK', () => {
             const issuer = new Account({privateKey: TEST_PRIVATE_KEY}).address().to_string();
             const subject = TEST_ADDRESS;
 
-            const nationalityField = get_field_from_value("US");
+            const nationalityField = get_field_from_value("US", Network.Testnet);
             const data = {
                 issuer: issuer,
                 subject: subject,
@@ -146,7 +146,7 @@ describe('ZPassSDK', () => {
             const issuer = new Account({privateKey: TEST_PRIVATE_KEY}).address().to_string();
             const subject = TEST_ADDRESS;
 
-            const nationalityField = get_field_from_value("US");
+            const nationalityField = get_field_from_value("US", Network.Testnet);
             const data = {
                 issuer: issuer,
                 subject: subject,
@@ -186,7 +186,8 @@ describe('ZPassSDK', () => {
                 execution: ctx.execution!,
                 program: verify_poseidon2,
                 functionName: "verify",
-                verifyingKey: ctx.verifyingKey!
+                verifyingKey: ctx.verifyingKey!,
+                network: 'testnet'
             });
 
             expect(verificationResult).toBe(true);
@@ -198,7 +199,7 @@ describe('ZPassSDK', () => {
             const issuer = new Account({privateKey: TEST_PRIVATE_KEY}).address().to_string();
             const subject = TEST_ADDRESS;
 
-            const nationalityField = get_field_from_value("US");
+            const nationalityField = get_field_from_value("US", Network.Testnet);
             const data = {
                 issuer: issuer,
                 subject: subject,
@@ -220,6 +221,7 @@ describe('ZPassSDK', () => {
                     signResult.signature,
                     `{issuer: ${issuer}, subject: ${subject}, dob: ${data.dob}, nationality: ${nationalityField}, expiry: ${data.expiry}}`
                 ],
+                network: 'testnet'
             });
 
             expect(verificationResult).toBe(true);
@@ -232,7 +234,8 @@ describe('ZPassSDK', () => {
 
             const { hasExecution, outputs } = await ZPassSDK.verifyOnChain({
                 transactionId: txId,
-                url: TEST_HOST
+                url: TEST_HOST,
+                network: 'testnet'
             });
 
             expect(hasExecution).toBe(true);

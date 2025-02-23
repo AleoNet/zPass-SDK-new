@@ -8,7 +8,6 @@ import { ProgramManager } from "@provablehq/sdk/mainnet.js";
 
 const aleoWorker = AleoWorker();
 function App() {
-  const [executing, setExecuting] = useState(false);
   const [txId, setTxId] = useState(null);
   const [zPassRecord, setZPassRecord] = useState(null);
 
@@ -16,12 +15,12 @@ function App() {
     await aleoWorker.initializeZPass({
       privateKey: "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH",
       host: "http://localhost:3030",
+      network: "testnet"
     });
     alert("ZPass initialized");
   }
 
   async function execute() {
-    setExecuting(true);
     const result = await aleoWorker.testZPass({
       issuerData: {
         issuer: "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
@@ -34,7 +33,6 @@ function App() {
       programName: "verify_poseidon2_zpass.aleo",
       functionName: "issue",
     });
-    setExecuting(false);
     console.log("Broadcasted with tx id: ", result);
 
     alert(JSON.stringify(result));
@@ -82,7 +80,7 @@ function App() {
           </button>
         </p>
         <p>
-          <button disabled={executing} onClick={execute}>
+          <button onClick={execute}>
             {"Run testZPass"}
           </button>
         </p>

@@ -32,8 +32,10 @@
 ## Roadmap
 
 - [ ] Add records finder
+- [x] Add testnet support
 - [x] Add mainnet support
+- [x] Add merkle root and proof generation
 - [ ] Optimise program execution
 - [x] Web Worker integration  
 - [ ] Add universal wallet adapter support
-- [ ] Documentation and setup guide
+- [x] Documentation and setup guide

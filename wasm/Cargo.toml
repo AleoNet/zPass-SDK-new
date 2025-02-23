@@ -1,6 +1,6 @@
 [package]
 name = "zpass-credential-signer"
-version = "0.0.2"
+version = "0.1.3"
 authors = ["zPass"]
 edition = "2021"
 license = "MIT"
@@ -12,12 +12,12 @@ crate-type = ["cdylib", "rlib"]
 default = ["console_error_panic_hook"]
 
 [dependencies.snarkvm-console]
-version = "1.0.0"
+version = "1.2.1"
 default-features = false
 features = ["wasm", "account", "network", "types", "program"]
 
 [dependencies.snarkvm-utilities]
-version = "1.0.0"
+version = "1.2.1"
 default-features = false
 features = ["wasm"]
 

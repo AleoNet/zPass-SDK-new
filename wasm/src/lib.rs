@@ -5,6 +5,7 @@ extern crate core;
 mod helpers;
 pub mod wasm;
 mod error;
+mod merkle_tree;
 
 // Crate level imports
 pub use wasm::*;
@@ -15,7 +16,7 @@ use std::str::FromStr;
 
 // External crate imports
 use snarkvm_console::{
-    prelude::Parser, account::{PrivateKey, Signature}, network::{environment::ToFields, MainnetV0 as CurrentNetwork, Network}, prelude::Zero, program::{Identifier, Literal, Plaintext, Value}, types::*
+    prelude::Parser, account::{PrivateKey, Signature}, network::{environment::ToFields, TestnetV0, MainnetV0, Network as NetworkNative}, prelude::Zero, program::{Identifier, Literal, Plaintext, Value}, types::{*, field::Add}
 };
 use snarkvm_utilities::{TestRng, ToBits, Uniform};
 
@@ -34,8 +35,8 @@ use crate::helpers::{
 };
 
 #[derive(Debug)]
-struct Credential {
-    data: IndexMap<String, Plaintext<CurrentNetwork>>,
+struct Credential<N: NetworkNative> {
+    data: IndexMap<String, Plaintext<N>>,
 }
 
 /// Signs the provided message using the given private key.
@@ -52,10 +53,10 @@ struct Credential {
 /// # Returns
 ///
 /// A result with tuple of signature and hash as strings if successful, otherwise returns a `CustomError`.
-pub fn sign_message_with_logger(private_key: String, message: SignInboundMessage, hash: HashAlgorithm, logger: &dyn Logger) -> Result<(String, String), CustomError> {
-    let private_key = PrivateKey::<CurrentNetwork>::from_str(&private_key)
+pub fn sign_message_with_logger<N: NetworkNative>(private_key: String, message: SignInboundMessage, hash: HashAlgorithm, logger: &dyn Logger) -> Result<(String, String), CustomError> {
+    let private_key = PrivateKey::<N>::from_str(&private_key)
         .map_err(|e| anyhow!("Failed to parse private key: {}", e))?;
-    let issuer = Address::<CurrentNetwork>::try_from(&private_key)
+    let issuer = Address::<N>::try_from(&private_key)
         .map_err(|e| anyhow!("Failed to parse issuer address: {}", e))?;
 
     let data = convert_data_to_struct(message.data, logger);
@@ -66,7 +67,7 @@ pub fn sign_message_with_logger(private_key: String, message: SignInboundMessage
         data
     };
 
-    let credentials_message: Value<CurrentNetwork> = generate_message_with_addresses_and_fields(credential)?;
+    let credentials_message: Value<N> = generate_message_with_addresses_and_fields(credential)?;
     let hash = create_hash(credentials_message.clone(), hash)?;
     let mut rng = TestRng::default();
 
@@ -86,7 +87,6 @@ pub fn sign_message_with_logger(private_key: String, message: SignInboundMessage
 
     assert!(verified, "Signature was not verified properly!");
 
-
     logger.log(&format!("Message: {:?}", credentials_message));
     logger.log(&format!("Signature: {:?}", signature));
     logger.log(&format!("Verified: {:?}", verified));
@@ -96,12 +96,16 @@ pub fn sign_message_with_logger(private_key: String, message: SignInboundMessage
     Ok((signature.to_string(), hash.to_string()))
 }
 
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use serde_json::json;
     use helpers::StdoutLogger;
     use crate::helpers::{create_hash, generate_message_with_addresses_and_fields, string_to_value};
+
+    // Define the network type for the tests
+    type N = TestnetV0;
 
     fn get_test_data() -> (String, String, String, String) {
         let private_key = "APrivateKey1zkp5LqRmm7535XfiX77VPQEgsS2Dj1B2DvH4QNP1UYrHEoR".to_string();
@@ -125,7 +129,7 @@ mod tests {
         let message = SignInboundMessage {
             data: json_value,
         };
-        let result = sign_message_with_logger(private_key, message, HashAlgorithm::POSEIDON2, &StdoutLogger);
+        let result = sign_message_with_logger::<N>(private_key, message, HashAlgorithm::POSEIDON2, &StdoutLogger);
 
         assert!(result.is_ok());
 
@@ -134,8 +138,8 @@ mod tests {
 
     #[test]
     fn test_create_hash_with_different_messages_psd2() {
-        let message1 = string_to_value("123field");
-        let message2 = string_to_value("321field");
+        let message1 = string_to_value::<N>("123field");
+        let message2 = string_to_value::<N>("321field");
 
         let hash1 = create_hash(message1, HashAlgorithm::POSEIDON2).unwrap();
         let hash2 = create_hash(message2, HashAlgorithm::POSEIDON2).unwrap();
@@ -145,8 +149,8 @@ mod tests {
 
     #[test]
     fn test_create_hash_with_different_messages_bhp1024() {
-        let message1 = string_to_value("123field");
-        let message2 = string_to_value("321field");
+        let message1 = string_to_value::<N>("123field");
+        let message2 = string_to_value::<N>("321field");
 
         let hash1 = create_hash(message1, HashAlgorithm::BHP1024).unwrap();
         let hash2 = create_hash(message2, HashAlgorithm::BHP1024).unwrap();
@@ -156,7 +160,7 @@ mod tests {
 
     #[test]
     fn test_create_hash_with_same_messages_psd2() {
-        let message = string_to_value("123field");
+        let message = string_to_value::<N>("123field");
 
 
         let hash1 = create_hash(message.clone(), HashAlgorithm::POSEIDON2).unwrap();
@@ -170,7 +174,7 @@ mod tests {
 
     #[test]
     fn test_create_hash_with_same_messages_bhp2014() {
-        let message = string_to_value("123field");
+        let message = string_to_value::<N>("123field");
 
         let hash1 = create_hash(message.clone(), HashAlgorithm::BHP1024).unwrap();
         let hash2 = create_hash(message.clone(), HashAlgorithm::BHP1024).unwrap();
@@ -183,7 +187,7 @@ mod tests {
 
     #[test]
     fn test_create_hash_with_same_messages_sha3() {
-        let message = string_to_value("123field");
+        let message = string_to_value::<N>("123field");
 
         let hash1 = create_hash(message.clone(), HashAlgorithm::SHA3_256).unwrap();
         let hash2 = create_hash(message.clone(), HashAlgorithm::SHA3_256).unwrap();
@@ -196,7 +200,7 @@ mod tests {
 
     #[test]
     fn test_create_hash_with_same_messages_keccak256() {
-        let message = string_to_value("123field");
+        let message = string_to_value::<N>("123field");
 
         let hash1 = create_hash(message.clone(), HashAlgorithm::KECCAK256).unwrap();
         let hash2 = create_hash(message.clone(), HashAlgorithm::KECCAK256).unwrap();
@@ -218,7 +222,7 @@ mod tests {
             "dob": dob
         });
 
-        let credential = Credential {
+        let credential = Credential::<N> {
             data: convert_data_to_struct(json_value, &StdoutLogger),
         };
 

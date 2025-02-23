@@ -6,6 +6,7 @@ export { HashAlgorithm };
 export interface SDKOptions {
     privateKey: string;
     host?: string;
+    network: 'mainnet' | 'testnet';
 }
 
 export interface SignCredentialOptions {
@@ -24,6 +25,7 @@ export interface ProveOffChainOptions {
 export interface VerifyOnChainOptions {
     transactionId: string;
     url?: string;
+    network: 'mainnet' | 'testnet';
 } 
 
 export interface VerifyOffChainOptions {
@@ -33,6 +35,7 @@ export interface VerifyOffChainOptions {
     inputs?: string[];
     verifyingKey?: string;
     url?: string;
+    network: 'mainnet' | 'testnet';
 }
 
 export interface OnChainOptions {

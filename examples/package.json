@@ -12,13 +12,12 @@
     "install-leo": "./install.sh"
   },
   "dependencies": {
-    "@provablehq/sdk": "^0.7.1",
+    "@provablehq/sdk": "^0.8.0",
     "comlink": "^4.4.1",
     "core-js": "^3.39.0",
-    "core-js-pure": "^3.39.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "zpass-sdk": "^0.0.9"
+    "zpass-sdk": "file:../zpass-sdk-0.1.2.tgz"
   },
   "devDependencies": {
     "@babel/core": "^7.17.2",

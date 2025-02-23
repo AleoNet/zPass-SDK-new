@@ -1,0 +1,23 @@
+
+
+  VITE v4.5.5  ready in 220 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+  ➜  press h to show help
+2:03:07 AM [vite] page reload src/workers/worker.js
+2:03:11 AM [vite] page reload src/workers/worker.js (x2)
+2:03:17 AM [vite] page reload src/workers/worker.js (x3)
+2:03:18 AM [vite] page reload src/workers/worker.js (x4)
+2:03:43 AM [vite] page reload src/workers/worker.js (x5)
+2:03:45 AM [vite] page reload src/workers/worker.js (x6)
+2:03:46 AM [vite] page reload src/workers/worker.js (x7)
+files in the public directory are served at the root path.
+Instead of /public/favicon.ico, use /favicon.ico.
+2:05:14 AM [vite] page reload src/workers/worker.js
+2:05:15 AM [vite] page reload src/workers/worker.js (x2)
+files in the public directory are served at the root path.
+Instead of /public/favicon.ico, use /favicon.ico.
+2:05:50 AM [vite] hmr update /src/App.jsx
+2:05:54 AM [vite] hmr update /src/App.jsx (x2)
+files in the public directory are served at the root path.

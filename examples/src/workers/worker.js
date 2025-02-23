@@ -1,15 +1,17 @@
-import { ZPassSDK, HashAlgorithm, initThreadPool } from "zpass-sdk";
+import { ZPassSDK, HashAlgorithm } from "zpass-sdk";
 import { expose } from "comlink";
 
 let zpass = null;
 
-await initThreadPool();
-
-async function initializeZPass({privateKey, host}) {
+async function initializeZPass({privateKey, host, network}) {
   zpass = new ZPassSDK({
     privateKey,
     host,
+    network: network || 'testnet'
   });
+
+  const { initThreadPool } = await zpass.getSDKModules();
+  await initThreadPool();
 }
 
 async function testZPass({issuerData, programName, functionName}) {
@@ -65,5 +67,5 @@ async function testZPassUsage({programName, functionName, inputs, fee}) {
   return tx_id;
 }
 
-const workerMethods = { testZPass, testZPassUsage, getZPass, initializeZPass };
-expose(workerMethods);
+const workerMethods = { testZPass, testZPassUsage, getZPass, initializeZPass, getMerkleTree };
+expose(workerMethods);  
