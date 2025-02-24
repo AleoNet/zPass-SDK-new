@@ -239,11 +239,13 @@ mod tests {
     type N = TestnetV0;
 
     // Common test inputs
-    const TEST_INPUTS: [&str; 4] = [
+    const TEST_INPUTS: [&str; 6] = [
         "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
         "123field",
         "23u8",
-        "33u128"
+        "33u128",
+        "123123scalar",
+        "0group"
     ];
 
     #[test]
